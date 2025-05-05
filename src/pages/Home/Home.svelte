@@ -1,88 +1,437 @@
+<!-- src/Home.svelte -->
 <script>
-    let location = "Jl. Soekarno Hatta 15A";
+  import { onMount, onDestroy } from "svelte";
+  import SlideBarHome from "./SlideBarHome.svelte";
+  import { goto } from "$app/navigation"; // Sử dụng SvelteKit để điều hướng
+
+  let address = "Home, Jl. Soekarno Hatta 15A";
+
+  // Danh sách banner
+  let banners = [
+    {
+      text: "Get your 30% daily discount now!",
+      image: "https://via.placeholder.com/200x150",
+      alt: "Burger",
+    },
+    {
+      text: "Special Offer: Free Delivery Today!",
+      image: "https://via.placeholder.com/200x150",
+      alt: "Pizza",
+    },
+    {
+      text: "Try Our New Menu Items!",
+      image: "https://via.placeholder.com/200x150",
+      alt: "Sushi",
+    },
+  ];
+
+  // Dữ liệu chi tiết cho nhà hàng (Fastest Delivery)
+  let restaurants = [
+    {
+      id: 1,
+      name: "Crazy Tacko",
+      description: "Deliceous tackos, appetizing snacks, fresh ingredients",
+      price: "€3.00",
+      deliveryTime: "40-50 min",
+      rating: "9.5",
+      deliveryFee: "€0.00",
+      image: "https://via.placeholder.com/150",
+    },
+    {
+      id: 2,
+      name: "La Sala",
+      description: "Fresh and tasty salads",
+      price: "€2.00",
+      deliveryTime: "30-40 min",
+      rating: "8.9",
+      image: "https://via.placeholder.com/150",
+    },
+  ];
+
+  // Dữ liệu chi tiết cho món ăn (Popular Items)
+  let popularItems = [
+    {
+      id: 3,
+      name: "Cheese Burger",
+      description: "Juicy beef patty with melted cheese",
+      price: "€5.00",
+      deliveryTime: "20-30 min",
+      rating: "9.0",
+      image: "https://via.placeholder.com/100",
+    },
+    {
+      id: 4,
+      name: "Sushi Platter",
+      description: "Fresh sushi with assorted fish",
+      price: "€8.00",
+      deliveryTime: "30-40 min",
+      rating: "9.2",
+      image: "https://via.placeholder.com/100",
+    },
+  ];
+
+  let currentBannerIndex = 0;
+  let intervalId;
+
+  // Chuyển banner tự động
+  onMount(() => {
+    intervalId = setInterval(() => {
+      currentBannerIndex = (currentBannerIndex + 1) % banners.length;
+    }, 1500);
+  });
+
+  // Dừng interval khi component bị hủy
+  onDestroy(() => {
+    if (intervalId) {
+      clearInterval(intervalId);
+    }
+  });
+
+  // Xử lý khi click vào chấm (dot)
+  function goToBanner(index) {
+    currentBannerIndex = index;
+  }
+
+  // Điều hướng đến trang chi tiết sản phẩm
+  function goToProductDetail(item) {
+    goto(`/product/${item.id}`); // Điều hướng đến trang chi tiết với ID sản phẩm
+  }
 </script>
 
-<main class="p-4 bg-gray-100 min-h-screen">
+<main>
+  <div class="home-page">
     <!-- Header -->
-    <header class="flex items-center justify-between mb-4">
-        <h1 class="text-lg font-semibold">🏠 Home</h1>
-        <p class="text-sm text-gray-500">{location} ⌄</p>
+    <header>
+      <div class="address">
+        <span class="icon">🏠</span>
+        <span>{address}</span>
+        <span class="heart-icon">❤️</span>
+      </div>
     </header>
 
-    <!-- Banner -->
-    <div class="relative bg-orange-500 rounded-lg text-white p-4">
-        <h2 class="text-lg font-bold">Get your 30% daily discount now!</h2>
-        <button class="mt-2 bg-black text-white px-4 py-2 rounded-lg">Order now</button>
-        <div class="absolute right-4 top-1/2 -translate-y-1/2">
-            <img src="https://via.placeholder.com/80" class="rounded-lg shadow-lg" />
-        </div>
+    <!-- Banner Carousel -->
+    <div class="banner-carousel">
+      <div
+        class="banner-wrapper"
+        style="transform: translateX(-{currentBannerIndex * 100}%);"
+      >
+        {#each banners as banner}
+          <div class="banner">
+            <div class="banner-text">
+              <h2>{banner.text}</h2>
+              <button>Order now</button>
+            </div>
+            <img src={banner.image} alt={banner.alt} class="banner-image" />
+          </div>
+        {/each}
+      </div>
+    </div>
+
+    <!-- Dots (Pagination for Banner) -->
+    <div class="dots">
+      {#each banners as _, index}
+        <span
+          class={currentBannerIndex === index ? "dot active" : "dot"}
+          on:click={() => goToBanner(index)}
+          on:keydown={(e) => e.key === "Enter" && goToBanner(index)}
+          role="button"
+          tabindex="0"
+        ></span>
+      {/each}
     </div>
 
     <!-- Fastest Delivery Section -->
-    <section class="mt-6">
-        <div class="flex justify-between items-center mb-2">
-            <h2 class="text-lg font-semibold">Fastest delivery 🔥</h2>
-            <button class="text-orange-500 text-sm">See all</button>
-        </div>
-
-        <div class="flex space-x-4 overflow-x-auto">
-            <div class="w-64 bg-white rounded-lg shadow p-3">
-                <img src="https://via.placeholder.com/150" class="rounded-lg w-full h-28 object-cover" />
-                <h3 class="text-sm font-semibold mt-2">Crazy Tacko</h3>
-                <p class="text-xs text-gray-500">Delicious tacos, fresh ingredients...</p>
-                <div class="flex items-center justify-between text-xs mt-1">
-                    <span>€3.00</span>
-                    <span>⏳ 40-50min</span>
-                    <span>⭐ 9.5</span>
-                </div>
+    <section class="fastest-delivery">
+      <div class="section-header">
+        <h3>Fastest delivery 🔥</h3>
+        <button class="see-all">See all</button>
+      </div>
+      <div class="restaurant-list">
+        {#each restaurants as restaurant}
+          <div
+            class="restaurant-card"
+            on:click={() => goToProductDetail(restaurant)}
+            on:keydown={(e) => e.key === "Enter" && goToProductDetail(restaurant)}
+            role="button"
+            tabindex="0"
+          >
+            <img src={restaurant.image} alt={restaurant.name} />
+            <div class="restaurant-info">
+              <h4>{restaurant.name}</h4>
+              <p>{restaurant.description}</p>
+              <div class="details">
+                <span class="price">{restaurant.price}</span>
+                <span class="delivery-time">{restaurant.deliveryTime}</span>
+                <span class="rating">{restaurant.rating}</span>
+              </div>
+              {#if restaurant.deliveryFee}
+                <span class="delivery-fee">{restaurant.deliveryFee} delivery</span>
+              {/if}
             </div>
-
-            <div class="w-64 bg-white rounded-lg shadow p-3">
-                <img src="https://via.placeholder.com/150" class="rounded-lg w-full h-28 object-cover" />
-                <h3 class="text-sm font-semibold mt-2">La Salad</h3>
-                <p class="text-xs text-gray-500">Fresh and tasty salads...</p>
-                <div class="flex items-center justify-between text-xs mt-1">
-                    <span>€2.00</span>
-                    <span>⏳ 30-40min</span>
-                    <span>⭐ 9.2</span>
-                </div>
-            </div>
-        </div>
+          </div>
+        {/each}
+      </div>
     </section>
 
     <!-- Popular Items Section -->
-    <section class="mt-6">
-        <div class="flex justify-between items-center mb-2">
-            <h2 class="text-lg font-semibold">Popular items 👏</h2>
-            <button class="text-orange-500 text-sm">See all</button>
-        </div>
-
-        <div class="grid grid-cols-3 gap-3">
-            <div class="bg-white rounded-lg shadow p-3">
-                <img src="https://via.placeholder.com/100" class="rounded-lg w-full h-20 object-cover" />
-            </div>
-            <div class="bg-white rounded-lg shadow p-3">
-                <img src="https://via.placeholder.com/100" class="rounded-lg w-full h-20 object-cover" />
-            </div>
-            <div class="bg-white rounded-lg shadow p-3">
-                <img src="https://via.placeholder.com/100" class="rounded-lg w-full h-20 object-cover" />
-            </div>
-        </div>
+    <section class="popular-items">
+      <div class="section-header">
+        <h3>Popular items 🥐</h3>
+        <button class="see-all">See all</button>
+      </div>
+      <div class="item-list">
+        {#each popularItems as item}
+          <div
+            class="item-card"
+            on:click={() => goToProductDetail(item)}
+            on:keydown={(e) => e.key === "Enter" && goToProductDetail(item)}
+            role="button"
+            tabindex="0"
+          >
+            <img src={item.image} alt={item.name} />
+          </div>
+        {/each}
+      </div>
     </section>
 
-    <!-- Navigation Bar -->
-    <nav class="fixed bottom-0 left-0 right-0 bg-white shadow-lg p-3 flex justify-around">
-        <button class="text-orange-500 flex flex-col items-center">
-            🔍 <span class="text-xs">Discover</span>
-        </button>
-        <button class="text-gray-500 flex flex-col items-center">
-            🍔 <span class="text-xs"><a href="/restaurant">Restaurants</a></span>
-        </button>
-        <button class="text-gray-500 flex flex-col items-center">
-            ❤️ <span class="text-xs">Favorite</span>
-        </button>
-        <button class="text-gray-500 flex flex-col items-center">
-            👤 <span class="text-xs">Profile</span>
-        </button>
-    </nav>
+    <!-- Bottom Navigation -->
+    <SlideBarHome />
+  </div>
 </main>
+
+<style>
+  /* Reset and Global Styles */
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+  }
+
+  .home-page {
+    background-color: #f5f5f5;
+    min-height: 100vh;
+    padding-bottom: 70px; /* Space for bottom navigation */
+  }
+
+  /* Header */
+  header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 20px;
+    background-color: #fff;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  }
+
+  .address {
+    display: flex;
+    align-items: center;
+    background-color: #ffedeb;
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-size: 14px;
+  }
+
+  .address .icon {
+    margin-right: 5px;
+  }
+
+  .address .heart-icon {
+    margin-left: 5px;
+    color: #ff4d4f;
+  }
+
+  /* Banner Carousel */
+  .banner-carousel {
+    margin: 20px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .banner-wrapper {
+    display: flex;
+    width: 100%;
+    transition: transform 0.5s ease-in-out; /* Hiệu ứng chuyển động mượt mà */
+  }
+
+  .banner {
+    flex: 0 0 100%; /* Mỗi banner chiếm toàn bộ chiều rộng */
+    background: linear-gradient(to right, #ff8c00, #ff4500);
+    border-radius: 15px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px;
+  }
+
+  .banner-text {
+    color: #fff;
+  }
+
+  .banner-text h2 {
+    font-size: 20px;
+    margin-bottom: 10px;
+  }
+
+  .banner-text button {
+    background-color: #000;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 20px;
+    font-size: 14px;
+    cursor: pointer;
+  }
+
+  .banner-image {
+    width: 150px;
+    height: 120px;
+    object-fit: cover;
+  }
+
+  /* Dots (Pagination) */
+  .dots {
+    display: flex;
+    justify-content: center;
+    margin: 10px 0;
+  }
+
+  .dot {
+    width: 8px;
+    height: 8px;
+    background-color: #ccc;
+    border-radius: 50%;
+    margin: 0 5px;
+    cursor: pointer;
+  }
+
+  .dot.active {
+    background-color: #000;
+  }
+
+  /* Fastest Delivery Section */
+  .fastest-delivery {
+    margin: 20px;
+  }
+
+  .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+  }
+
+  .section-header h3 {
+    font-size: 18px;
+    font-weight: bold;
+  }
+
+  .see-all {
+    background: none;
+    border: none;
+    color: #ff4d4f;
+    font-size: 14px;
+    cursor: pointer;
+  }
+
+  .restaurant-list {
+    display: flex;
+    gap: 15px;
+    overflow-x: auto;
+    padding-bottom: 10px;
+  }
+
+  .restaurant-card {
+    background-color: #fff;
+    border-radius: 15px;
+    width: 250px;
+    flex-shrink: 0;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    cursor: pointer; /* Thêm con trỏ để người dùng biết có thể click */
+  }
+
+  .restaurant-card img {
+    width: 100%;
+    height: 150px;
+    object-fit: cover;
+  }
+
+  .restaurant-info {
+    padding: 10px;
+  }
+
+  .restaurant-info h4 {
+    font-size: 16px;
+    font-weight: bold;
+    margin-bottom: 5px;
+  }
+
+  .restaurant-info p {
+    font-size: 12px;
+    color: #888;
+    margin-bottom: 5px;
+  }
+
+  .details {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 5px;
+  }
+
+  .details .price {
+    color: #ff4d4f;
+    font-weight: bold;
+  }
+
+  .details .delivery-time {
+    color: #888;
+  }
+
+  .details .rating {
+    background-color: #ffedeb;
+    color: #ff4d4f;
+    padding: 2px 5px;
+    border-radius: 10px;
+    font-size: 12px;
+  }
+
+  .delivery-fee {
+    display: inline-block;
+    background-color: #e6ffed;
+    color: #28a745;
+    padding: 5px 10px;
+    border-radius: 15px;
+    font-size: 12px;
+  }
+
+  /* Popular Items Section */
+  .popular-items {
+    margin: 20px;
+  }
+
+  .item-list {
+    display: flex;
+    gap: 15px;
+    overflow-x: auto;
+    padding-bottom: 10px;
+  }
+
+  .item-card {
+    background-color: #fff;
+    border-radius: 15px;
+    width: 150px;
+    flex-shrink: 0;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    cursor: pointer; /* Thêm con trỏ để người dùng biết có thể click */
+  }
+
+  .item-card img {
+    width: 100%;
+    height: 100px;
+    object-fit: cover;
+  }
+</style>

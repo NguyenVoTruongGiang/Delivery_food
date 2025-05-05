@@ -2,6 +2,7 @@
   let username = "";
   let password = "";
   let url = "https://byvn.net/ZXk3";
+  // import imagePath from '../../asset/images/welcome.jpg';
 
   function handleEmailLogin() {
     console.log("Logging in with email...");
@@ -19,12 +20,23 @@
 <div class="container">
   <!-- Background Image -->
   <div class="header">
+    <!-- <img src={imagePath} alt="Fast Food" class="img_wel"/> -->
     <img src={url} alt="Fast Food" class="img_wel"/>
   </div>
   <div class="card">
     <!-- Content -->
+    <div>
+      <a href="pay">pay</a>
+    </div>
+    <div>
+      <a href="checkout">checkout</a>
+    </div>
+    <div>
+      <a href="productOrderDetail">productOrderDetail</a>
+    </div>
     <div class="content">
       <h1>Welcome to <br /><span>Fast Food</span></h1>
+      <h1><a href="/admin"> test admin</a></h1>
       <p>Get your favourite meals delivered quickly right to your doorstep</p>
 
       <!-- Start with Email -->
@@ -37,11 +49,11 @@
 
       <!-- Social Login Buttons -->
       <button on:click={handleFacebookLogin} class="btn btn-social btn-facebook">
-        <img src="https://cdn-icons-png.flaticon.com/512/124/124010.png" />
+        <img src="https://cdn-icons-png.flaticon.com/512/124/124010.png" alt="facebook"/>
         Continue with Facebook
       </button>
       <button on:click={handleGoogleLogin} class="btn btn-social">
-        <img src="https://ssl.gstatic.com/images/branding/product/2x/gsa_512dp.png"/>
+        <img src="https://ssl.gstatic.com/images/branding/product/2x/gsa_512dp.png" alt="google"/>
         Continue with Google
       </button>
 

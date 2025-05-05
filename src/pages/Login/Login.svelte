@@ -5,10 +5,10 @@
 
   function handleLogin() {
     if (email === "giang@gmail.com" && password === "123") {
-      console.log("Đăng nhập thành công");
+      console.log("✅ Đăng nhập thành công");
       onLoginSuccess();
     } else {
-      console.log("Email hoặc mật khẩu không chính xác");
+      console.log("❌ Email hoặc mật khẩu không chính xác");
     }
   }
 </script>
@@ -16,64 +16,60 @@
 <div class="container">
   <div class="card">
     <h1>Login</h1>
-    <form form on:submit|preventDefault={handleLogin}>
+    
+    <form on:submit|preventDefault={handleLogin}>
       <p>Email</p>
       <input type="email" bind:value={email} placeholder="Your email" />
 
       <p>Password</p>
       <input type="password" bind:value={password} placeholder="Password" />
+
       <div class="forgot-password">
         <a href="/newPass">Forgot password?</a>
       </div>
 
       <button class="btn-login">Login</button>
     </form>
+
     <p>
-      Don't have an account? <a
-        href="/register"
-        style="color:#f97316; font-weight:bold">Sign Up</a
-      >
+      Don't have an account? 
+      <a href="/register" class="sign-up-link">Sign Up</a>
     </p>
 
-    <div class="divider">Sign in with</div>
+    <div class="divider">Or sign in with</div>
 
-    <button class="btn-social">
-      <img
-        src="https://cdn-icons-png.flaticon.com/512/124/124010.png"
-        alt="Facebook"
-      />
+    <button class="btn-social facebook">
+      <img src="https://cdn-icons-png.flaticon.com/512/124/124010.png" alt="Facebook" />
       Continue with Facebook
     </button>
-    <button class="btn-social">
-      <img
-        src="https://ssl.gstatic.com/images/branding/product/2x/gsa_512dp.png"
-        alt="Google"
-      />
+
+    <button class="btn-social google">
+      <img src="https://ssl.gstatic.com/images/branding/product/2x/gsa_512dp.png" alt="Google" />
       Continue with Google
     </button>
   </div>
 </div>
 
 <style>
+  /* Căn giữa login form */
   .container {
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 100vh;
-    background: white;
-  }
-
-  .card {
-    width: 90%;
-    max-width: 350px;
+    min-height: 100vh;
+    background: #f8f8f8;
     padding: 20px;
-    text-align: center;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-    border-radius: 10px;
   }
 
-  .card form p {
-    display: flex;
+  /* Hộp đăng nhập */
+  .card {
+    width: 100%;
+    max-width: 400px;
+    background: white;
+    padding: 24px;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    text-align: center;
   }
 
   h1 {
@@ -82,20 +78,30 @@
     text-align: left;
   }
 
+  p {
+    font-size: 14px;
+    text-align: left;
+    font-weight: 500;
+    margin: 10px 0 5px;
+  }
+
   input {
     width: 100%;
     padding: 10px;
-    margin-top: 8px;
     border: 1px solid #ddd;
-    border-radius: 6px;
+    border-radius: 8px;
+    font-size: 16px;
   }
 
   .forgot-password {
     text-align: right;
+    margin-top: 5px;
+  }
+
+  .forgot-password a {
     color: #f97316;
     font-size: 12px;
-    margin-top: 5px;
-    cursor: pointer;
+    text-decoration: none;
   }
 
   .btn-login {
@@ -104,10 +110,21 @@
     background: #f97316;
     color: white;
     border: none;
-    border-radius: 6px;
+    border-radius: 8px;
     font-size: 16px;
     cursor: pointer;
     margin-top: 12px;
+    transition: background 0.3s ease;
+  }
+
+  .btn-login:hover {
+    background: #e65a00;
+  }
+
+  .sign-up-link {
+    color: #f97316;
+    font-weight: bold;
+    text-decoration: none;
   }
 
   .divider {
@@ -115,20 +132,23 @@
     align-items: center;
     justify-content: center;
     margin: 16px 0;
+    font-size: 14px;
+    color: #888;
   }
 
+  /* Nút login với mạng xã hội */
   .btn-social {
     display: flex;
-    width: 100%;
     align-items: center;
     justify-content: center;
-    background: white;
-    border: 1px solid #ddd;
+    width: 100%;
+    border: none;
     padding: 10px;
-    cursor: pointer;
-    border-radius: 6px;
     font-size: 14px;
-    margin-top: 10px;
+    cursor: pointer;
+    border-radius: 8px;
+    margin-top: 8px;
+    transition: opacity 0.3s ease;
   }
 
   .btn-social img {
@@ -136,19 +156,41 @@
     margin-right: 8px;
   }
 
-  /* Responsive styles */
-  @media (max-width: 320px) {
+  .facebook {
+    background: #1877f2;
+    color: white;
+  }
+
+  .facebook:hover {
+    opacity: 0.85;
+  }
+
+  .google {
+    background: white;
+    color: black;
+    border: 1px solid #ddd;
+  }
+
+  .google:hover {
+    background: #f1f1f1;
+  }
+
+  /* 🎯 Responsive */
+  @media (max-width: 480px) {
     .container {
       padding: 10px;
     }
 
     .card {
-      width: 100%;
-      padding: 15px;
+      padding: 18px;
     }
 
     h1 {
-      font-size: 20px;
+      font-size: 22px;
+    }
+
+    input {
+      font-size: 14px;
     }
 
     .btn-login {
@@ -158,68 +200,11 @@
     .btn-social {
       font-size: 12px;
     }
-
-    .forgot-password {
-      font-size: 10px;
-    }
   }
 
-  @media (min-width: 321px) and (max-width: 768px) {
-    .container {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100%;
-      background: white;
-      /* padding: 20px; */
-    }
-
+  @media (min-width: 768px) {
     .card {
-      max-width: 100%;
-      padding: 20px;
-    }
-
-    h1 {
-      font-size: 22px;
-    }
-
-    .btn-login {
-      font-size: 15px;
-    }
-
-    .btn-social {
-      font-size: 13px;
-    }
-
-    .forgot-password {
-      font-size: 11px;
-    }
-  }
-
-  @media (min-width: 1024px) {
-    .container {
-      padding: 30px;
-    }
-
-    .card {
-      width: 80%;
-      padding: 25px;
-    }
-
-    h1 {
-      font-size: 26px;
-    }
-
-    .btn-login {
-      font-size: 18px;
-    }
-
-    .btn-social {
-      font-size: 16px;
-    }
-
-    .forgot-password {
-      font-size: 13px;
+      max-width: 450px;
     }
   }
 </style>
