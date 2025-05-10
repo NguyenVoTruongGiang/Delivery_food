@@ -7,6 +7,7 @@
     <div class="user">
       <img src="https://via.placeholder.com/40" alt="User" />
       <span>{adminName}</span>
+      
     </div>
   </div>
   

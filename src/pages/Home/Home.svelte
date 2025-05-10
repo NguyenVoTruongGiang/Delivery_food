@@ -1,10 +1,18 @@
 <!-- src/Home.svelte -->
 <script>
+  export let onLogout;
+  export let onProductDetail; // Hàm điều hướng đến trang chi tiết sản phẩm
   import { onMount, onDestroy } from "svelte";
   import SlideBarHome from "./SlideBarHome.svelte";
-  import { goto } from "$app/navigation"; // Sử dụng SvelteKit để điều hướng
 
   let address = "Home, Jl. Soekarno Hatta 15A";
+  let user = JSON.parse(localStorage.getItem("user")); // Lấy thông tin người dùng từ localStorage
+  console.log(user.name);
+
+  if (!user) {
+    // Chưa login thì chuyển hướng
+    window.location.href = "/login";
+  }
 
   // Danh sách banner
   let banners = [
@@ -93,19 +101,29 @@
   }
 
   // Điều hướng đến trang chi tiết sản phẩm
-  function goToProductDetail(item) {
-    goto(`/product/${item.id}`); // Điều hướng đến trang chi tiết với ID sản phẩm
+  function goToProductDetail(productId) {
+    onProductDetail(productId.id); // Gọi hàm điều hướng từ props
+  }
+
+  function handleLogout() {
+    localStorage.removeItem("user"); //  logout user
+    onLogout(); // Gọi hàm logout từ props
   }
 </script>
 
 <main>
   <div class="home-page">
     <!-- Header -->
-    <header>
+    <header style="display: flex; justify-content: space-around;">
       <div class="address">
         <span class="icon">🏠</span>
         <span>{address}</span>
         <span class="heart-icon">❤️</span>
+      </div>
+
+      <div class="user-info">
+        <span>{user?.name}</span>
+        <button on:click={handleLogout}>logout</button>
       </div>
     </header>
 
@@ -150,8 +168,8 @@
         {#each restaurants as restaurant}
           <div
             class="restaurant-card"
-            on:click={() => goToProductDetail(restaurant)}
-            on:keydown={(e) => e.key === "Enter" && goToProductDetail(restaurant)}
+            on:click={() => goToProductDetail(restaurant.id)}
+            on:keydown={(e) => e.key === "Enter" && goToProductDetail(restaurant.id)}
             role="button"
             tabindex="0"
           >
@@ -183,8 +201,8 @@
         {#each popularItems as item}
           <div
             class="item-card"
-            on:click={() => goToProductDetail(item)}
-            on:keydown={(e) => e.key === "Enter" && goToProductDetail(item)}
+            on:click={() => goToProductDetail(item.id)}
+            on:keydown={(e) => e.key === "Enter" && goToProductDetail(item.id)}
             role="button"
             tabindex="0"
           >
@@ -230,6 +248,12 @@
     background-color: #ffedeb;
     padding: 5px 10px;
     border-radius: 20px;
+    font-size: 14px;
+  }
+
+  .user-info {
+    display: flex;
+    align-items: center;
     font-size: 14px;
   }
 

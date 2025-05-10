@@ -1,15 +1,31 @@
 <script>
   export let onSignUp;
-  let name = "";
   let email = "";
+  let name = "";
   let password = "";
+  let url = "http://localhost:3000/api/register";
 
-  function handleRegister() {
-    if (name && email && password) {
-      console.log("✅ Đăng ký thành công");
+  async function handleRegister() {
+    console.log({ email, name, password });
+    try {
+      const response = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, name, password }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Invalid email or name or password");
+      }
+
+      const data = await response.json();
+      console.log("Đăng ký thành công:", data);
       onSignUp();
-    } else {
-      console.log("❌ Email hoặc mật khẩu không chính xác");
+      console.log("Đăng ký thành công")
+    } catch (error) {
+      console.error("Đăng ký thất bại:", error.message);
     }
   }
 </script>
@@ -19,11 +35,11 @@
     <h1>Sign Up</h1>
 
     <form on:submit|preventDefault={handleRegister}>
-      <p>Name</p>
-      <input type="text" bind:value={name} placeholder="Your name" />
-
       <p>Email</p>
       <input type="email" bind:value={email} placeholder="Your email" />
+
+      <p>Name</p>
+      <input type="text" bind:value={name} placeholder="Your name" />
 
       <p>Password</p>
       <input type="password" bind:value={password} placeholder="Password" />
@@ -34,19 +50,25 @@
     </form>
 
     <p>
-      Already have an account? 
+      Already have an account?
       <a href="/login" class="login-link">Login</a>
     </p>
 
     <div class="divider">Or sign in with</div>
 
     <button class="btn-social facebook">
-      <img src="https://cdn-icons-png.flaticon.com/512/124/124010.png" alt="Facebook" />
+      <img
+        src="https://cdn-icons-png.flaticon.com/512/124/124010.png"
+        alt="Facebook"
+      />
       Continue with Facebook
     </button>
 
     <button class="btn-social google">
-      <img src="https://ssl.gstatic.com/images/branding/product/2x/gsa_512dp.png" alt="Google" />
+      <img
+        src="https://ssl.gstatic.com/images/branding/product/2x/gsa_512dp.png"
+        alt="Google"
+      />
       Continue with Google
     </button>
   </div>

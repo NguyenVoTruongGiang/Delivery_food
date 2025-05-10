@@ -1,0 +1,87 @@
+{
+  "restaurants": [
+    {
+      "id": 1,
+      "name": "Crazy Tacko",
+      "description": "Deliceous tackos, appetizing snacks, fresh ingredients",
+      "price": "€3.00",
+      "deliveryTime": "40-50 min",
+      "rating": "9.5",
+      "deliveryFee": "€0.00",
+      "image": "../assets/images/noodle.png"
+    },
+    {
+      "id": 2,
+      "name": "La Sala",
+      "description": "Fresh and tasty salads",
+      "price": "€2.00",
+      "deliveryTime": "30-40 min",
+      "rating": "8.9",
+      "image": "../assets/images/pizza.png"
+    }
+  ],
+  "orders": [
+    {
+      "id": "#ORD-001",
+      "customer": "Sarah Johnson",
+      "restaurant": "Burger King",
+      "status": "Delivered",
+      "amount": "$35.50"
+    },
+    {
+      "id": "#ORD-002",
+      "customer": "Mike Smith",
+      "restaurant": "Pizza Hut",
+      "status": "In Progress",
+      "amount": "$42.75"
+    }
+  ],
+  "users": [
+    {
+      "id": 1,
+      "email": "giang@gmail.com",
+      "name": "giang",
+      "password": "123",
+      "role": 2
+    },
+    {
+      "id": 2,
+      "email": "admin@gmail.com",
+      "name": "admin",
+      "password": "123",
+      "role": 1
+    },
+    {
+      "id": 3,
+      "email": "giangkoli@gmail.com",
+      "name": "giang",
+      "password": "123",
+      "role": 2
+    },
+    {
+      "id": 4,
+      "email": "kolikoli@gmail.com",
+      "name": "kolikoli",
+      "password": "123",
+      "role": 2
+    }
+  ],
+  "products": [
+    {
+      "id": 1,
+      "name": "Crazy Tacko",
+      "description": "Deliceous tackos, appetizing snacks, fresh ingredients",
+      "price": "€3.00",
+      "originalPrice": "€4.00",
+      "image": "https://via.placeholder.com/300x200"
+    },
+    {
+      "id": 2,
+      "name": "La Sala",
+      "description": "Fresh and tasty salads",
+      "price": "€2.00",
+      "originalPrice": "€3.00",
+      "image": "https://via.placeholder.com/300x200"
+    }
+  ]
+}
