@@ -19,9 +19,24 @@
     "svelte": "^3.55.0"
   },
   "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^5.1.0",
     "lucide-svelte": "^0.476.0",
     "mapbox-gl": "^3.10.0",
     "sirv-cli": "^2.0.0",
     "tinro": "^0.6.12"
-  }
+  },
+  "description": "---",
+  "main": "rollup.config.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/NguyenVoTruongGiang/Delivery_food.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/NguyenVoTruongGiang/Delivery_food/issues"
+  },
+  "homepage": "https://github.com/NguyenVoTruongGiang/Delivery_food#readme"
 }

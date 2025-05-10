@@ -1,19 +1,6 @@
-<!-- <script></script>
-
-<main>
-    <h1>Product</h1>
-    <p>Product page content goes here...</p>
-    <a href="/product/map">map</a>
-</main>
-
-<style></style> -->
-
 <script>
     import { onMount } from "svelte";
     import { writable } from "svelte/store";
-    // import SearchBar from "../../components/SearchBar/SearchBar.svelte";
-    // import SortBar from "../../components/SortBar/SortBar.svelte";
-    // import * as SecureStore from "expo-secure-store";
   
     let token = writable(null);
     let products = writable([]);

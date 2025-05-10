@@ -1,8 +1,7 @@
 <script>
   let username = "";
   let password = "";
-  let url = "https://byvn.net/ZXk3";
-  // import imagePath from '../../asset/images/welcome.jpg';
+  let url = "/assets/images/welcome.png";
 
   function handleEmailLogin() {
     console.log("Logging in with email...");
@@ -20,7 +19,6 @@
 <div class="container">
   <!-- Background Image -->
   <div class="header">
-    <!-- <img src={imagePath} alt="Fast Food" class="img_wel"/> -->
     <img src={url} alt="Fast Food" class="img_wel"/>
   </div>
   <div class="card">

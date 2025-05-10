@@ -1,14 +1,39 @@
 <script>
   export let onLoginSuccess;
+  export let onLoginAdmin;
   let email = "";
   let password = "";
+  let url = "http://localhost:3000/api/login";
 
-  function handleLogin() {
-    if (email === "giang@gmail.com" && password === "123") {
-      console.log("✅ Đăng nhập thành công");
-      onLoginSuccess();
-    } else {
-      console.log("❌ Email hoặc mật khẩu không chính xác");
+  async function handleLogin() {
+    console.log({ email, password }); 
+    try {
+      const response = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Invalid email or password");
+      }
+
+      const data = await response.json();
+      console.log("Đăng nhập thành công:", data);
+      localStorage.setItem("user", JSON.stringify(data.user)); // Lưu thông tin người dùng vào localStorage
+
+      // Điều hướng dựa trên role
+      if (data.user.role === 1) {
+        onLoginAdmin()
+      } else if (data.user.role === 2) {
+        onLoginSuccess()
+      } else {
+        alert("Không có role!");
+      }
+    } catch (error) {
+      console.error("Đăng nhập thất bại:", error.message);
     }
   }
 </script>
