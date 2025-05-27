@@ -34,48 +34,32 @@
   ];
 
   // Dữ liệu ban đầu cho nhà hàng và món ăn (khởi tạo rỗng)
-  let restaurants = [];
   let products = [];
   let carts = [];
 
-   $: totalCartPrice = carts.reduce((sum, item) => {
-    const product = products.find(p => p.id === item.productId);
-    const productPrice = product ? parseFloat(product.price.replace("€", "")) : 0;
-    const addOnsPrice = item.addOns ? item.addOns.reduce((addOnSum, addOn) => {
-      return addOnSum + parseFloat(addOn.price.replace("€", ""));
-    }, 0) : 0;
-    return sum + ((productPrice + addOnsPrice) * item.quantity);
-  }, 0).toFixed(2);
-
+  $: totalCartPrice = carts
+    .reduce((sum, item) => {
+      const product = products.find((p) => p.id === item.product_id);
+      const productPrice = product
+        ? parseFloat(product.price.replace("€", ""))
+        : 0;
+      const addOnsPrice = item.addOns
+        ? item.addOns.reduce((addOnSum, addOn) => {
+            return addOnSum + parseFloat(addOn.price.replace("€", ""));
+          }, 0)
+        : 0;
+      return sum + (productPrice + addOnsPrice) * item.quantity;
+    }, 0)
+    .toFixed(2);
 
   let currentBannerIndex = 0;
   let intervalId;
-  const baseUrl = "http://localhost:3000/api";
-
-  // Hàm gọi API để lấy danh sách nhà hàng
-  async function fetchRestaurants() {
-    try {
-      const response = await fetch(`${baseUrl}/restaurants`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-      if (!response.ok) {
-        throw new Error("Failed to fetch restaurants");
-      }
-      const data = await response.json();
-      restaurants = data; // Cập nhật danh sách nhà hàng từ API
-    } catch (error) {
-      console.error("Error fetching restaurants:", error);
-    
-    }
-  }
+  const baseUrl = "http://localhost:8080";
 
   // Hàm gọi API để lấy danh sách sản phẩm (Popular Items)
   async function fetchProduct() {
     try {
-      const response = await fetch(`${baseUrl}/products`, {
+      const response = await fetch(`${baseUrl}/product`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -86,9 +70,9 @@
       }
       const data = await response.json();
       products = data; // Cập nhật danh sách sản phẩm từ API
+      console.log("Products fetched:", products);
     } catch (error) {
       console.error("Error fetching popular items:", error);
-      
     }
   }
 
@@ -153,14 +137,14 @@
   }
 
   function increaseQuantity(itemId) {
-    const item = carts.find(item => item.id === itemId);
+    const item = carts.find((item) => item.id === itemId);
     if (item) {
       updateCartItem(itemId, item.quantity + 1);
     }
   }
 
   function decreaseQuantity(itemId) {
-    const item = carts.find(item => item.id === itemId);
+    const item = carts.find((item) => item.id === itemId);
     if (item && item.quantity > 1) {
       updateCartItem(itemId, item.quantity - 1);
     }
@@ -168,7 +152,7 @@
 
   // Gọi API khi component được mount
   onMount(async () => {
-    await Promise.all([fetchRestaurants(), fetchProduct(), fetchCart()]); // Gọi cả hai API song song
+    await Promise.all([fetchProduct(), fetchCart()]); // Gọi cả hai API song song
 
     // Chuyển banner tự động
     intervalId = setInterval(() => {
@@ -185,13 +169,13 @@
 
   // xử lý chuyển qua trang produtcDetail khi click vào product trong cart
   function goToProductDetailFromCart(cartItem) {
-  const product = products.find(p => p.id === cartItem.productId);
-  if (product) {
-    onProductDetail(product); // Truyền đúng object sản phẩm
-  } else {
-    alert("Không tìm thấy thông tin sản phẩm!");
+    const product = products.find((p) => p.id === cartItem.product_id);
+    if (product) {
+      onProductDetail(product); // Truyền đúng object sản phẩm
+    } else {
+      alert("Không tìm thấy thông tin sản phẩm!");
+    }
   }
-}
 
   // Xử lý khi click vào chấm (dot)
   function goToBanner(index) {
@@ -224,24 +208,65 @@
         <button on:click={handleLogout}>logout</button>
 
         <div class="user-cart">
-          <button class="icon-cart" on:click={fetchCart}>🛒
+          <button class="icon-cart" on:click={fetchCart}
+            >🛒
             <div class="show-cart">
               {#if carts.length > 0}
                 {#each carts as item}
-                  <div class="cart-item" on:click={() => goToProductDetailFromCart(item)} on:keydown={(e) => e.key === "Enter" && goToProductDetailFromCart(item)} role="button" tabindex="0">
-                    <img src={products.find(p => p.id === item.productId)?.image || '/placeholder.png'} alt={products.find(p => p.id === item.productId)?.name || 'Unknown'} class="cart-item-image" />
+                  <div
+                    class="cart-item"
+                    on:click={() => goToProductDetailFromCart(item)}
+                    on:keydown={(e) =>
+                      e.key === "Enter" && goToProductDetailFromCart(item)}
+                    role="button"
+                    tabindex="0"
+                  >
+                    <img
+                      src={products.find((p) => p.id === item.product_id)
+                        ?.image || "/placeholder.png"}
+                      alt={products.find((p) => p.id === item.product_id)
+                        ?.name || "Unknown"}
+                      class="cart-item-image"
+                    />
                     <div class="cart-item-details">
-                      <p class="cart-item-name">{products.find(p => p.id === item.productId)?.name || 'Unknown'}</p>
+                      <p class="cart-item-name">
+                        {products.find((p) => p.id === item.product_id)?.name ||
+                          "Unknown"}
+                      </p>
                       {#if item.addOns && item.addOns.length > 0}
-                        <p class="cart-item-addons">Add-ons: {item.addOns.map(a => a.name).join(", ")}</p>
+                        <p class="cart-item-addons">
+                          Add-ons: {item.addOns.map((a) => a.name).join(", ")}
+                        </p>
                       {/if}
                       <div class="cart-item-quantity">
-                        <button on:click={() => decreaseQuantity(item.id)}>-</button>
+                        <button on:click={() => decreaseQuantity(item.id)}
+                          >-</button
+                        >
                         <span>{item.quantity}</span>
-                        <button on:click={() => increaseQuantity(item.id)}>+</button>
+                        <button on:click={() => increaseQuantity(item.id)}
+                          >+</button
+                        >
                       </div>
-                      <p class="cart-item-price">Price: €{((products.find(p => p.id === item.productId)?.price.replace("€", "") || 0) * 1 + (item.addOns ? item.addOns.reduce((sum, addOn) => sum + parseFloat(addOn.price.replace("€", "")), 0) : 0)).toFixed(2)}</p>
-                      <button class="delete-btn" on:click={() => deleteCartItem(item.id)}>Xóa</button>
+                      <p class="cart-item-price">
+                        Price: €{(
+                          (products
+                            .find((p) => p.id === item.product_id)
+                            ?.price.replace("€", "") || 0) *
+                            1 +
+                          (item.addOns
+                            ? item.addOns.reduce(
+                                (sum, addOn) =>
+                                  sum +
+                                  parseFloat(addOn.price.replace("€", "")),
+                                0
+                              )
+                            : 0)
+                        ).toFixed(2)}
+                      </p>
+                      <button
+                        class="delete-btn"
+                        on:click={() => deleteCartItem(item.id)}>Xóa</button
+                      >
                     </div>
                   </div>
                 {/each}
@@ -256,7 +281,6 @@
           </button>
         </div>
       </div>
-      
     </header>
 
     <!-- Banner Carousel -->
@@ -296,27 +320,26 @@
         <h3>Fastest delivery 🔥</h3>
         <button class="see-all">See all</button>
       </div>
-      <div class="restaurant-list">
-        {#each restaurants as restaurant}
+      <div class="product-list">
+        {#each products as product}
           <div
-            class="restaurant-card"
-            on:click={() => goToProductDetail(restaurant)}
-            on:keydown={(e) => e.key === "Enter" && goToProductDetail(restaurant)}
+            class="product-card"
+            on:click={() => goToProductDetail(product)}
+            on:keydown={(e) => e.key === "Enter" && goToProductDetail(product)}
             role="button"
             tabindex="0"
           >
-            <img src={restaurant.image} alt={restaurant.name} />
-            <div class="restaurant-info">
-              <h4>{restaurant.name}</h4>
-              <p>{restaurant.description}</p>
+            <img src={product.image} alt={product.name} />
+            <div class="product-info">
+              <h4>{product.name}</h4>
+              <p>{product.description}</p>
               <div class="details">
-                <span class="price">{restaurant.price}</span>
-                <span class="delivery-time">{restaurant.deliveryTime}</span>
-                <span class="rating">{restaurant.rating}</span>
+                <span class="price">€{product.price}</span>
+                <span class="category">{product.category}</span>
+                <span class="available"
+                  >{product.available ? "Available" : "Out of stock"}</span
+                >
               </div>
-              {#if restaurant.deliveryFee}
-                <span class="delivery-fee">{restaurant.deliveryFee} delivery</span>
-              {/if}
             </div>
           </div>
         {/each}
@@ -339,6 +362,10 @@
             tabindex="0"
           >
             <img src={product.image} alt={product.name} />
+            <div class="item-info">
+              <h4>{product.name}</h4>
+              <p>€{product.price}</p>
+            </div>
           </div>
         {/each}
       </div>
@@ -390,7 +417,7 @@
   .user-info span {
     padding: 10px;
   }
-.user-cart {
+  .user-cart {
     display: flex;
     padding: 0 15px;
     font-size: 14px;

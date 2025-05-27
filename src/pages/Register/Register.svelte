@@ -3,7 +3,7 @@
   let email = "";
   let name = "";
   let password = "";
-  let url = "http://localhost:3000/api/register";
+  let url = "http://localhost:8080/user/register";
 
   async function handleRegister() {
     console.log({ email, name, password });

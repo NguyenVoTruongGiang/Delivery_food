@@ -1,6 +1,5 @@
 <script>
   export let onLoginSuccess;
-  export let onLoginAdmin;
   let email = "";
   let password = "";
   let url = "http://localhost:8080/user/login"; // Đổi sang endpoint của Spring Boot
@@ -23,19 +22,9 @@
       const data = await response.json();
       console.log("Đăng nhập thành công:", data);
 
-      // Tùy vào response của Spring Boot, bạn có thể cần sửa lại dòng dưới:
       localStorage.setItem("user", JSON.stringify(data.user || data)); // Lưu thông tin người dùng vào localStorage
-        onLoginSuccess();
-
-      // Điều hướng dựa trên role (giả sử Spring trả về role trong data.user.role hoặc data.role)
-      // const user = data.user || data;
-      // if (user.role === 1) {
-      //   onLoginAdmin();
-      // } else if (user.role === 2) {
-      //   onLoginSuccess();
-      // } else {
-      //   alert("Không có role!");
-      // }
+      localStorage.setItem("token", data.token);
+      onLoginSuccess();
     } catch (error) {
       console.error("Đăng nhập thất bại:", error.message);
     }
