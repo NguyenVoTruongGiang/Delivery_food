@@ -1,44 +1,9 @@
 {
-  "restaurants": [
-    {
-      "id": 1,
-      "name": "Crazy Tacko",
-      "description": "Deliceous tackos, appetizing snacks, fresh ingredients",
-      "price": "€3.00",
-      "deliveryTime": "40-50 min",
-      "rating": "9.5",
-      "deliveryFee": "€0.00",
-      "image": "../assets/images/noodle.png"
-    },
-    {
-      "id": 2,
-      "name": "La Sala",
-      "description": "Fresh and tasty salads",
-      "price": "€2.00",
-      "deliveryTime": "30-40 min",
-      "rating": "8.9",
-      "image": "../assets/images/pizza.png"
-    }
-  ],
-  "orders": [
-    {
-      "id": "#ORD-001",
-      "customer": "Sarah Johnson",
-      "restaurant": "Burger King",
-      "status": "Delivered",
-      "amount": "$35.50"
-    },
-    {
-      "id": "#ORD-002",
-      "customer": "Mike Smith",
-      "restaurant": "Pizza Hut",
-      "status": "In Progress",
-      "amount": "$42.75"
-    }
-  ],
+  "orders": [],
   "users": [
     {
       "id": 1,
+      "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiOTg3NjU0IiwiY29tcGxldGVuY2kiOiJKb2huX0RvZSIsImVtYWlsIjoiam9obmRvZUBleGFtcGxlLmNvbSIsInJvbGUiOiJ1c2VyIiwicGVybWlzc2lvbnMiOlsicmVhZCJdLCJpYXQiOjE2MTIzNDU2NzF9.KI6KicmEzXaOaw4F4mMoK5dTwEk9qFHk9W5dV7I7JmI",
       "email": "giang@gmail.com",
       "name": "giang",
       "password": "123",
@@ -46,6 +11,7 @@
     },
     {
       "id": 2,
+      "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiMTEyMjMzMyIsIm5hbWUiOiJBbGljZSBTeW1pdGgiLCJlbWFpbCI6ImFsaWNlLnNtaXRoQGV4YW1wbGUuY29tIiwicm9sZSI6Im1hbmFnZXIiLCJwZXJtaXNzaW9ucyI6WyJyZWFkIiwid3JpdGUiXSwiaWF0IjoxNjEyMzQ1NzM3fQ.Vu1T7Kz_h9xMB6MwW2F-U-9w9sqz4lXhjlfkECa5MkE",
       "email": "admin@gmail.com",
       "name": "admin",
       "password": "123",
@@ -53,6 +19,7 @@
     },
     {
       "id": 3,
+      "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoiNDQ1NTY2IiwiY29tcGxldGVuY2kiOiJCb2JfSm9uZXMiLCJlbWFpbCI6ImJvYmpvbmVzQGV4YW1wbGUuY29tIiwicm9sZSI6Imd1ZXN0IiwicGVybWlzc2lvbnMiOlsicmVhZCJdLCJpYXQiOjE2MTIzNDU4MDB9.AAf7uNToOsn2Zk8ti5fK97u_D9mkhg9mUgCvC_0iwRU",
       "email": "giangkoli@gmail.com",
       "name": "giang",
       "password": "123",
@@ -69,19 +36,57 @@
   "products": [
     {
       "id": 1,
-      "name": "Crazy Tacko",
+      "name": "snack Tacko",
       "description": "Deliceous tackos, appetizing snacks, fresh ingredients",
+      "category": "snack",
       "price": "€3.00",
+      "discount": "20%",
+      "discountPrice": "€2.40",
       "originalPrice": "€4.00",
-      "image": "https://via.placeholder.com/300x200"
+      "image": "/assets/images/noodle.png"
     },
     {
       "id": 2,
       "name": "La Sala",
       "description": "Fresh and tasty salads",
+      "category": "salad",
       "price": "€2.00",
+      "discount": "20%",
+      "discountPrice": "€1.40",
       "originalPrice": "€3.00",
-      "image": "https://via.placeholder.com/300x200"
+      "image": "/assets/images/pizza.png"
     }
+  ],
+  "carts": [
+    null,
+    [
+      {
+        "id": 1,
+        "productId": 2,
+        "quantity": 1,
+        "userId": 1,
+        "addOns": [
+          {
+            "name": "Phô mai parmesan",
+            "price": "€2.50",
+            "selected": true
+          },
+          {
+            "name": "Nước sốt cà chua",
+            "price": "€1.50",
+            "selected": true
+          }
+        ],
+        "addedAt": "2025-05-16T09:08:40.772Z"
+      },
+      {
+        "id": 2,
+        "productId": 1,
+        "quantity": 2,
+        "userId": 1,
+        "addOns": [],
+        "addedAt": "2025-05-19T10:14:51.393Z"
+      }
+    ]
   ]
 }

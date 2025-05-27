@@ -3,7 +3,7 @@
   export let onLoginAdmin;
   let email = "";
   let password = "";
-  let url = "http://localhost:3000/api/login";
+  let url = "http://localhost:8080/user/login"; // Đổi sang endpoint của Spring Boot
 
   async function handleLogin() {
     console.log({ email, password }); 
@@ -22,16 +22,20 @@
 
       const data = await response.json();
       console.log("Đăng nhập thành công:", data);
-      localStorage.setItem("user", JSON.stringify(data.user)); // Lưu thông tin người dùng vào localStorage
 
-      // Điều hướng dựa trên role
-      if (data.user.role === 1) {
-        onLoginAdmin()
-      } else if (data.user.role === 2) {
-        onLoginSuccess()
-      } else {
-        alert("Không có role!");
-      }
+      // Tùy vào response của Spring Boot, bạn có thể cần sửa lại dòng dưới:
+      localStorage.setItem("user", JSON.stringify(data.user || data)); // Lưu thông tin người dùng vào localStorage
+        onLoginSuccess();
+
+      // Điều hướng dựa trên role (giả sử Spring trả về role trong data.user.role hoặc data.role)
+      // const user = data.user || data;
+      // if (user.role === 1) {
+      //   onLoginAdmin();
+      // } else if (user.role === 2) {
+      //   onLoginSuccess();
+      // } else {
+      //   alert("Không có role!");
+      // }
     } catch (error) {
       console.error("Đăng nhập thất bại:", error.message);
     }

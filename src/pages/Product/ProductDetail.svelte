@@ -1,60 +1,57 @@
-<!-- src/pages/product/[id].svelte -->
+<!-- src/pages/product/ProductDetail.svelte -->
 <script>
   import { onMount } from "svelte";
+  export let onGoHome;
 
   let product = null;
-  // Dữ liệu giả lập (thay thế bằng API nếu cần)
-  const products = [
-    {
-      id: 1,
-      name: "Crazy Tacko",
-      description: "Deliceous tackos, appetizing snacks, fresh ingredients",
-      price: "€3.00",
-      originalPrice: "€4.00",
-      image: "https://via.placeholder.com/300x200",
-    },
-    {
-      id: 2,
-      name: "La Sala",
-      description: "Fresh and tasty salads",
-      price: "€2.00",
-      originalPrice: "€3.00",
-      image: "https://via.placeholder.com/300x200",
-    },
-    {
-      id: 3,
-      name: "Cheese Burger",
-      description: "Juicy beef patty with melted cheese",
-      price: "€5.00",
-      originalPrice: "€6.00",
-      image: "https://via.placeholder.com/300x200",
-    },
-    {
-      id: 4,
-      name: "Sushi Platter",
-      description: "Fresh sushi with assorted fish",
-      price: "€8.00",
-      originalPrice: "€10.00",
-      image: "https://via.placeholder.com/300x200",
-    },
-  ];
+  let baseUrl = "http://localhost:3000/api";
+  let isLoading = true;
+  let error = null;
+
+  async function fetchProduct(productId) {
+    try {
+      const response = await fetch(`${baseUrl}/products/${productId}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      if (!response.ok) {
+        throw new Error(`Failed to fetch product: ${response.statusText}`);
+      }
+      const data = await response.json();
+      product = data;
+    } catch (error) {
+      console.error("Error fetching product:", error);
+      error = error.message;
+      product = null;
+    } finally {
+      isLoading = false;
+    }
+  }
 
   onMount(() => {
-    const params = new URLSearchParams(window.location.pathname.split("/"));
-    const productId = parseInt(params.get("id"), 10);
-    product = products.find((p) => p.id === productId);
+    const pathParts = window.location.pathname.split("/");
+    const productId = parseInt(pathParts[pathParts.length - 1], 10);
+    if (isNaN(productId)) {
+      console.error("Invalid product ID from URL:", window.location.pathname);
+      error = "Invalid product ID";
+      isLoading = false;
+    } else {
+      fetchProduct(productId);
+    }
   });
 
   let addOns = [
-    { name: "Parmesan cheese", price: "€2.50", selected: false },
-    { name: "Sauce", price: "€1.50", selected: false },
-    { name: "Package box cost", price: "€0.50", selected: false },
+    { name: "Phô mai parmesan", price: "€2.50", selected: false },
+    { name: "Nước sốt cà chua", price: "€1.50", selected: false },
+    { name: "Nước sốt cay", price: "€1.50", selected: false },
+    { name: "Nước sốt kem", price: "€2.50", selected: false },
   ];
 
   let quantity = 1;
   let isFavorite = false;
-
-  // Lấy ID từ URL và tìm sản phẩm tương ứng
+  let cartItem = null; // Define cartItem to avoid reference error
 
   function toggleFavorite() {
     isFavorite = !isFavorite;
@@ -74,11 +71,88 @@
     }
   }
 
-  function addToOrder() {
-    const selectedAddOns = addOns.filter((addOn) => addOn.selected);
-    alert(
-      `Added to order: ${product.name}, Quantity: ${quantity}, Add-ons: ${selectedAddOns.map((a) => a.name).join(", ")}`
-    );
+  async function addToOrder() {
+    if (product) {
+      const user = JSON.parse(localStorage.getItem("user"));
+      console.log("User from localStorage:", user);
+      if (!user) {
+        alert("Please log in to add to cart.");
+        return;
+      }
+
+      const selectedAddOns = addOns.filter((addOn) => addOn.selected);
+      const payload = {
+        productId: product.id,
+        quantity,
+        userId: user.id,  
+        addOns: selectedAddOns,
+      };
+
+      console.log("Payload to send:", payload);
+
+      try {
+        const response = await fetch(`${baseUrl}/cart/${user.id}`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(payload),
+        });
+
+        if (!response.ok) {
+          throw new Error("Failed to add to cart");
+        }
+
+        const data = await response.json();
+        alert(`Added to cart: ${product.name}, Quantity: ${quantity}, Add-ons: ${selectedAddOns.map((a) => a.name).join(", ")}`);
+        onGoHome();
+      } catch (error) {
+        console.error("Error adding to cart:", error);
+        alert("Failed to add to cart.");
+      }
+    } else {
+      alert("Product details are not available.");
+    }
+  }
+
+  async function updateCart() {
+    const selectedAddOns = [];
+    addOns.forEach(addOn => {
+      for (let i = 0; i < addOn.count; i++) {
+        selectedAddOns.push({ name: addOn.name, price: addOn.price });
+      }
+    });
+
+    try {
+      const response = await fetch(`${baseUrl}/cart/${user.id}/${cartItem.id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          quantity,
+          addOns: selectedAddOns,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to update cart");
+      }
+
+      alert("Cart updated!");
+      window.location.href = "/";
+    } catch (error) {
+      console.error("Error updating cart:", error);
+      alert("Failed to update cart.");
+    }
+  }
+
+  function handleConfirm() {
+    if (cartItem) {
+      updateCart();
+    } else {
+      addToCart();
+    }
   }
 </script>
 
@@ -95,17 +169,35 @@
 
   <!-- Product Image -->
   <div class="product-image">
-    <img src={product.image} alt={product.name} />
+    {#if isLoading}
+      <p>Loading product image...</p>
+    {:else if error}
+      <p>Error: {error}</p>
+    {:else if product && product.image}
+      <img src={product.image} alt={product.name} />
+    {:else}
+      <p>No image available</p>
+    {/if}
   </div>
 
   <!-- Product Info -->
   <div class="product-info">
-    <h1>{product.name}</h1>
-    <p class="description">{product.description}</p>
-    <div class="price">
-      <span class="current-price">{product.price}</span>
-      <span class="original-price">{product.originalPrice}</span>
-    </div>
+    {#if isLoading}
+      <p>Loading product details...</p>
+    {:else if error}
+      <p>Error: {error}</p>
+    {:else if product}
+      <h1>{product.name}</h1>
+      <p class="description">{product.description || "No description available"}</p>
+      <div class="price">
+        <span class="current-price">{product.price || "N/A"}</span>
+        {#if product.originalPrice}
+          <span class="original-price">{product.originalPrice}</span>
+        {/if}
+      </div>
+    {:else}
+      <p>Product not found</p>
+    {/if}
   </div>
 
   <!-- Add More (Add-ons) -->
@@ -133,7 +225,9 @@
       <span>{quantity}</span>
       <button on:click={increaseQuantity}>+</button>
     </div>
-    <button class="add-to-order-btn" on:click={addToOrder}>Add to order</button>
+    <button class="add" on:click={handleConfirm}>
+      {cartItem ? "Update" : "Add to Cart"}
+    </button>
   </div>
 </div>
 
@@ -305,7 +399,12 @@
     cursor: pointer;
   }
 
-  .add-to-order-btn:hover {
+  .add-to-order-btn:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+  }
+
+  .add-to-order-btn:hover:not(:disabled) {
     background-color: #e67e22;
   }
 </style>
