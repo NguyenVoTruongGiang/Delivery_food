@@ -1,3 +1,4 @@
+<!-- App.svelte -->
 <script>
   import { Route, router } from "tinro";
   import Login from "./pages/Login/Login.svelte";
@@ -24,6 +25,10 @@
   import Pay from "./pages/Pay/Pay.svelte";
 
   function onLoginSuccess() {
+    router.goto("/home");
+  }
+
+  function onGoHome () {
     router.goto("/home");
   }
 
@@ -71,7 +76,7 @@
 </Route>
 <Route path="/product"><Product /></Route>
 <Route path="/product/:id">
-  <ProductDetail />
+  <ProductDetail {onGoHome}/>
 </Route>
 <Route path="/product/map"><Map /></Route>
 <Route path="/admin">
@@ -96,5 +101,5 @@
   <Checkout />
 </Route>
 <Route path="/productOrderDetail">
-  <ProductOrderDetail />
+  <ProductOrderDetail/>
 </Route>
