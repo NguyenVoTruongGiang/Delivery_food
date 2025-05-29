@@ -54,6 +54,11 @@
 
   let currentBannerIndex = 0;
   let intervalId;
+
+  let filteredProducts = []; // Danh sách sản phẩm sau khi lọc
+  let categories = []; // Danh sách danh mục từ API
+  let selectedCategory = ""; // Danh mục được chọn
+
   const baseUrl = "http://localhost:8080";
 
   // Hàm gọi API để lấy danh sách sản phẩm (Popular Items)
@@ -70,9 +75,21 @@
       }
       const data = await response.json();
       products = data; // Cập nhật danh sách sản phẩm từ API
+
+      filteredProducts = products; // hiển thị tất cả sản phẩm
       console.log("Products fetched:", products);
     } catch (error) {
       console.error("Error fetching popular items:", error);
+    }
+  }
+
+  // Lọc sản phẩm theo danh mục
+  function filterByCategory(category) {
+    selectedCategory = category;
+    if (category === "") {
+      filteredProducts = products; // Hiển thị tất cả nếu không chọn danh mục
+    } else {
+      filteredProducts = products.filter((product) => product.category.toLowerCase() === category.toLowerCase());
     }
   }
 
@@ -282,6 +299,28 @@
         </div>
       </div>
     </header>
+
+    <!-- Categories -->
+    <section class="categories">
+      <div class="category-list">
+        <button
+                class="category-tag"
+                class:active={selectedCategory === ""}
+                on:click={() => filterByCategory("")}
+        >
+          All
+        </button>
+        {#each categories as category}
+          <button
+                  class="category-tag"
+                  class:active={selectedCategory === category}
+                  on:click={() => filterByCategory(category)}
+          >
+            {category}
+          </button>
+        {/each}
+      </div>
+    </section>
 
     <!-- Banner Carousel -->
     <div class="banner-carousel">
