@@ -36,6 +36,7 @@
   // Dữ liệu ban đầu cho nhà hàng và món ăn (khởi tạo rỗng)
   let products = [];
   let carts = [];
+  let cart_Id = user?.cart_id || 0; // Lấy cart_id từ thông tin người dùng
 
   $: totalCartPrice = carts
     .reduce((sum, item) => {
@@ -43,8 +44,8 @@
       const productPrice = product
         ? parseFloat(product.price.replace("€", ""))
         : 0;
-      const addOnsPrice = item.addOns
-        ? item.addOns.reduce((addOnSum, addOn) => {
+      const addOnsPrice = item.add_ons
+        ? item.add_ons.reduce((addOnSum, addOn) => {
             return addOnSum + parseFloat(addOn.price.replace("€", ""));
           }, 0)
         : 0;
@@ -77,59 +78,62 @@
   }
 
   async function fetchCart() {
+  try {
+    const response = await fetch(`${baseUrl}/cart/my_cart`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+    });
+    const text = await response.text();
     try {
-      const response = await fetch(`${baseUrl}/cart/${user.id}`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-      if (!response.ok) {
-        throw new Error("Failed to fetch cart");
-      }
-      const data = await response.json();
-      carts = data;
-    } catch (error) {
-      console.error("Error fetching cart:", error);
+      const data = JSON.parse(text);
+      carts = data.cartItems || [];
+      cart_Id = data.id;
+    } catch (e) {
+      console.error("Cart API trả về không phải JSON:", text);
       carts = [];
     }
+  } catch (error) {
+    console.error("Error fetching cart:", error);
+    carts = [];
   }
+}
 
-  async function updateCartItem(itemId, newQuantity) {
+  async function updateCartItem(cartItemId, newQuantity) {
     try {
-      const response = await fetch(`${baseUrl}/cart/${user.id}/${itemId}`, {
-        method: "PATCH",
+      const response = await fetch(`${baseUrl}/cart/updateItem/${cartItemId}`, {
+        method: "PUT",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
         body: JSON.stringify({ quantity: newQuantity }),
       });
-
       if (!response.ok) {
         throw new Error("Failed to update cart");
       }
-
-      await fetchCart(); // Refresh cart after update
+      await fetchCart();
     } catch (error) {
       console.error("Error updating cart:", error);
       alert("Failed to update cart.");
     }
   }
 
-  async function deleteCartItem(itemId) {
+  async function deleteCartItem(cartItemId) {
     try {
-      const response = await fetch(`${baseUrl}/cart/${user.id}/${itemId}`, {
+      const response = await fetch(`${baseUrl}/cart/deleteItem/${cartItemId}`, {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
       });
-
       if (!response.ok) {
         throw new Error("Failed to delete item from cart");
       }
-
-      await fetchCart(); // Refresh cart after deletion
+      await fetchCart();
     } catch (error) {
       console.error("Error deleting item from cart:", error);
       alert("Failed to delete item from cart.");
@@ -168,13 +172,17 @@
   });
 
   // xử lý chuyển qua trang produtcDetail khi click vào product trong cart
+  // function goToProductDetailFromCart(cartItem) {
+  //   const product = products.find((p) => p.id === cartItem.product_id);
+  //   if (product) {
+  //     onProductDetail(product); // Truyền đúng object sản phẩm
+  //   } else {
+  //     alert("Không tìm thấy thông tin sản phẩm!");
+  //   }
+  // }
+
   function goToProductDetailFromCart(cartItem) {
-    const product = products.find((p) => p.id === cartItem.product_id);
-    if (product) {
-      onProductDetail(product); // Truyền đúng object sản phẩm
-    } else {
-      alert("Không tìm thấy thông tin sản phẩm!");
-    }
+    onProductDetail(cartItem.product); // Truyền object product
   }
 
   // Xử lý khi click vào chấm (dot)
@@ -222,21 +230,14 @@
                     tabindex="0"
                   >
                     <img
-                      src={products.find((p) => p.id === item.product_id)
-                        ?.image || "/placeholder.png"}
-                      alt={products.find((p) => p.id === item.product_id)
-                        ?.name || "Unknown"}
+                      src={item.product.image}
+                      alt={item.product.name}
                       class="cart-item-image"
                     />
                     <div class="cart-item-details">
-                      <p class="cart-item-name">
-                        {products.find((p) => p.id === item.product_id)?.name ||
-                          "Unknown"}
-                      </p>
-                      {#if item.addOns && item.addOns.length > 0}
-                        <p class="cart-item-addons">
-                          Add-ons: {item.addOns.map((a) => a.name).join(", ")}
-                        </p>
+                      <p class="cart-item-name">{item.product.name}</p>
+                      {#if item.add_ons}
+                        <p class="cart-item-addons">Add-ons: {item.add_ons}</p>
                       {/if}
                       <div class="cart-item-quantity">
                         <button on:click={() => decreaseQuantity(item.id)}
@@ -248,20 +249,9 @@
                         >
                       </div>
                       <p class="cart-item-price">
-                        Price: €{(
-                          (products
-                            .find((p) => p.id === item.product_id)
-                            ?.price.replace("€", "") || 0) *
-                            1 +
-                          (item.addOns
-                            ? item.addOns.reduce(
-                                (sum, addOn) =>
-                                  sum +
-                                  parseFloat(addOn.price.replace("€", "")),
-                                0
-                              )
-                            : 0)
-                        ).toFixed(2)}
+                        Price: €{(item.product.price * item.quantity).toFixed(
+                          2
+                        )}
                       </p>
                       <button
                         class="delete-btn"

@@ -4,13 +4,13 @@
   export let onGoHome;
 
   let product = null;
-  let baseUrl = "http://localhost:3000/api";
+  let baseUrl = "http://localhost:8080";
   let isLoading = true;
   let error = null;
 
-  async function fetchProduct(productId) {
+  async function fetchProduct(product_id) {
     try {
-      const response = await fetch(`${baseUrl}/products/${productId}`, {
+      const response = await fetch(`${baseUrl}/product/${product_id}`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -42,7 +42,7 @@
     }
   });
 
-  let addOns = [
+  let add_ons = [
     { name: "Phô mai parmesan", price: "€2.50", selected: false },
     { name: "Nước sốt cà chua", price: "€1.50", selected: false },
     { name: "Nước sốt cay", price: "€1.50", selected: false },
@@ -58,7 +58,7 @@
   }
 
   function toggleAddOn(index) {
-    addOns[index].selected = !addOns[index].selected;
+    add_ons[index].selected = !add_ons[index].selected;
   }
 
   function increaseQuantity() {
@@ -71,69 +71,54 @@
     }
   }
 
-  async function addToOrder() {
-    if (product) {
-      const user = JSON.parse(localStorage.getItem("user"));
-      console.log("User from localStorage:", user);
-      if (!user) {
-        alert("Please log in to add to cart.");
-        return;
-      }
+  const user_id = Number(localStorage.getItem("user_id"));
+  console.log("User ID from localStorage:", user_id);
 
-      const selectedAddOns = addOns.filter((addOn) => addOn.selected);
-      const payload = {
-        productId: product.id,
-        quantity,
-        userId: user.id,  
-        addOns: selectedAddOns,
-      };
-
-      console.log("Payload to send:", payload);
-
-      try {
-        const response = await fetch(`${baseUrl}/cart/${user.id}`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(payload),
-        });
-
-        if (!response.ok) {
-          throw new Error("Failed to add to cart");
-        }
-
-        const data = await response.json();
-        alert(`Added to cart: ${product.name}, Quantity: ${quantity}, Add-ons: ${selectedAddOns.map((a) => a.name).join(", ")}`);
-        onGoHome();
-      } catch (error) {
-        console.error("Error adding to cart:", error);
-        alert("Failed to add to cart.");
-      }
-    } else {
-      alert("Product details are not available.");
-    }
+  async function addToCart() {
+    const token = localStorage.getItem("token");
+    const selectedAddOns = add_ons
+      .filter((a) => a.selected)
+      .map((a) => a.name)
+      .join(", ");
+    const response = await fetch(`http://localhost:8080/cart/add/${user_id}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        product_id: product.id, // snake_case
+        quantity: quantity,
+        add_ons: selectedAddOns, // snake_case
+        user_id: user_id, // snake_case
+      }),
+    });
+    if (!response.ok) throw new Error("Không thể thêm vào giỏ hàng");
+    alert("Đã thêm vào giỏ hàng!");
+    onGoHome();
   }
-
   async function updateCart() {
-    const selectedAddOns = [];
-    addOns.forEach(addOn => {
-      for (let i = 0; i < addOn.count; i++) {
-        selectedAddOns.push({ name: addOn.name, price: addOn.price });
+    const selectedAdd_ons = [];
+    add_ons.forEach((add_ons) => {
+      for (let i = 0; i < add_ons.count; i++) {
+        selectedAdd_ons.push({ name: add_ons.name, price: add_ons.price });
       }
     });
 
     try {
-      const response = await fetch(`${baseUrl}/cart/${user.id}/${cartItem.id}`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          quantity,
-          addOns: selectedAddOns,
-        }),
-      });
+      const response = await fetch(
+        `${baseUrl}/cart/${user.id}/${cartItem.id}`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            quantity,
+            add_ons: selectedAdd_ons,
+          }),
+        }
+      );
 
       if (!response.ok) {
         throw new Error("Failed to update cart");
@@ -188,7 +173,9 @@
       <p>Error: {error}</p>
     {:else if product}
       <h1>{product.name}</h1>
-      <p class="description">{product.description || "No description available"}</p>
+      <p class="description">
+        {product.description || "No description available"}
+      </p>
       <div class="price">
         <span class="current-price">{product.price || "N/A"}</span>
         {#if product.originalPrice}
@@ -203,17 +190,17 @@
   <!-- Add More (Add-ons) -->
   <section class="add-ons">
     <h3>Add more</h3>
-    {#each addOns as addOn, index}
+    {#each add_ons as add_on, index}
       <div class="add-on-item">
         <label>
           <input
             type="checkbox"
-            checked={addOn.selected}
+            checked={add_on.selected}
             on:change={() => toggleAddOn(index)}
           />
-          {addOn.name}
+          {add_on.name}
         </label>
-        <span class="add-on-price">{addOn.price}</span>
+        <span class="add-on-price">{add_on.price}</span>
       </div>
     {/each}
   </section>
