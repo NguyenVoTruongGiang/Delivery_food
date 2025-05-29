@@ -22,79 +22,85 @@
   ];
 
   // Dữ liệu giả lập cho nhà hàng/món ăn
-  let items = [
-    {
-      name: "Cheese Burger",
-      category: "burger",
-      price: "€5.00",
-      image: "https://via.placeholder.com/100",
-    },
-    {
-      name: "Veggie Salad",
-      category: "salad",
-      price: "€3.50",
-      image: "https://via.placeholder.com/100",
-    },
-    {
-      name: "Sushi Platter",
-      category: "sushi",
-      price: "€8.00",
-      image: "https://via.placeholder.com/100",
-    },
-    {
-      name: "Vegetarian Pizza",
-      category: "pizza",
-      price: "€7.00",
-      image: "https://via.placeholder.com/100",
-    },
-    {
-      name: "Chicken Wings",
-      category: "wings",
-      price: "€4.50",
-      image: "https://via.placeholder.com/100",
-    },
-    {
-      name: "Thai Noodles",
-      category: "thai",
-      price: "€6.00",
-      image: "https://via.placeholder.com/100",
-    },
-    {
-      name: "Chocolate Dessert",
-      category: "desserts",
-      price: "€3.00",
-      image: "https://via.placeholder.com/100",
-    },
-  ];
-
+  let items = [];
   let searchTerm = "";
   let searchResults = [];
+  let categories = []; // Lấy từ API
+  let selectedCategory = "";
+  const baseUrl = "http://localhost:8080";
 
+  // Lấy danh sách danh mục
+  async function fetchCategories() {
+    try {
+      const response = await fetch(`${baseUrl}/products/categories`, {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+      });
+      if (!response.ok) throw new Error("Failed to fetch categories");
+      categories = await response.json();
+      console.log("Categories fetched:", categories);
+    } catch (error) {
+      console.error("Error fetching categories:", error);
+      categories = [];
+    }
+  }
+
+  // call api search
   // Hàm tìm kiếm
-  function performSearch(term) {
+  async function performSearch(term) {
     if (!term) {
       searchResults = [];
       return;
     }
 
-    // Tìm kiếm theo từ khóa (không phân biệt hoa thường)
-    searchResults = items.filter(
-      (item) =>
-        item.name.toLowerCase().includes(term.toLowerCase()) ||
-        item.category.toLowerCase().includes(term.toLowerCase())
-    );
+    try {
+      const response = await fetch(`http://localhost:8080/products/search?keyword=${encodeURIComponent(term)}`);
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      const data = await response.json();
+      // Giả sử API trả về danh sách sản phẩm trực tiếp
+      searchResults = data;
+    } catch (error) {
+      console.error("Lỗi khi gọi API tìm kiếm:", error);
+      searchResults = [];
+    }
+  }
+
+  async function getProductsByCategory(category) {
+    try {
+      const response = await fetch(`${baseUrl}/products/category?category=${encodeURIComponent(category)}`);
+      if (!response.ok) throw new Error("Network response was not ok");
+      const data = await response.json();
+      searchResults = data;
+    } catch (error) {
+      console.error("Lỗi khi gọi API danh mục:", error);
+      searchResults = [];
+    }
   }
 
   // Xử lý tìm kiếm khi người dùng nhập vào thanh tìm kiếm
   function handleInputSearch() {
+    selectedCategory = "";
     performSearch(searchTerm);
   }
 
   // Xử lý tìm kiếm khi người dùng click vào thẻ từ khóa
   function handleKeywordSearch(keyword) {
+    selectedCategory = "";
     searchTerm = keyword;
     performSearch(keyword);
   }
+
+  function handleCategorySelect(category) {
+    selectedCategory = category;
+    searchTerm = "";
+    getProductsByCategory(category);
+  }
+
+  onMount(async () => {
+    await fetchCategories();
+  });
 </script>
 
 <div class="search-page">
