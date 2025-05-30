@@ -56,6 +56,10 @@
   function onRestaurant() {
     router.goto("/restaurant");
   }
+
+  function onPayment () {
+    router.goto("/checkout");
+  }
 </script>
 
 <main></main>
@@ -66,7 +70,7 @@
 <Route path="/register"><Register {onSignUp} /></Route>
 <Route path="/newPass"><NewPassword {onSend} /></Route>
 <Route path="/verificate"><Verificate /></Route>
-<Route path="/home"><Home {onRestaurant} {onLogout} {onProductDetail} /></Route>
+<Route path="/home"><Home {onRestaurant} {onLogout} {onProductDetail} {onPayment} /></Route>
 <Route path="/restaurant"><Restaurant /></Route>
 <Route path="/search"><Search /></Route>
 <Route path="/favorite"><Favorite /></Route>
