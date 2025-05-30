@@ -6,7 +6,7 @@
   import { onMount, onDestroy } from "svelte";
   import SlideBarHome from "./SlideBarHome.svelte";
 
-  let address = "Home, Jl. Soekarno Hatta 15A";
+  let nameRes = "Delivery Food";
   let user = JSON.parse(localStorage.getItem("user")); // Lấy thông tin người dùng từ localStorage
   console.log(user?.name);
 
@@ -255,9 +255,7 @@
     <!-- Header -->
     <header style="display: flex; justify-content: space-around;">
       <div class="address">
-        <span class="icon">🏠</span>
-        <span>{address}</span>
-        <span class="heart-icon">❤️</span>
+        <span>{nameRes}</span>
       </div>
 
       <div class="user-info">
@@ -485,7 +483,7 @@
     background-color: #ffedeb;
     padding: 5px 10px;
     border-radius: 20px;
-    font-size: 14px;
+    font-size: 35px;
   }
 
   .user-info {
@@ -740,18 +738,6 @@
     color: #fff;
     border-color: #ff4d4f;
   }
-
-  /* .product-card {
-    background-color: #fff;
-    border-radius: 15px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    overflow: hidden;
-    cursor: pointer;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 10px;
-  } */
 
   .product-card {
     display: flex;

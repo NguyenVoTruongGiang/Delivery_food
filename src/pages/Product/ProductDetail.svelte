@@ -10,7 +10,7 @@
 
   async function fetchProduct(product_id) {
     try {
-      const response = await fetch(`${baseUrl}/product/${product_id}`, {
+      const response = await fetch(`${baseUrl}/products/${product_id}`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",

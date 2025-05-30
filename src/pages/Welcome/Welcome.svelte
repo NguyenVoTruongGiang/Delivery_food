@@ -23,7 +23,7 @@
   </div>
   <div class="card">
     <!-- Content -->
-    <div>
+    <!-- <div>
       <a href="pay">pay</a>
     </div>
     <div>
@@ -31,10 +31,10 @@
     </div>
     <div>
       <a href="productOrderDetail">productOrderDetail</a>
-    </div>
+    </div> -->
     <div class="content">
       <h1>Welcome to <br /><span>Fast Food</span></h1>
-      <h1><a href="/admin"> test admin</a></h1>
+      <!-- <h1><a href="/admin"> test admin</a></h1> -->
       <p>Get your favourite meals delivered quickly right to your doorstep</p>
 
       <!-- Start with Email -->
@@ -58,7 +58,7 @@
       <!-- Sign In Link -->
       <p class="signin-text">
         Already have an account?
-        <a href="/login">Sign In</a>
+        <a href="/login" style="color: white; text-decoration: none;">Sign In</a>
       </p>
     </div>
   </div>
@@ -74,6 +74,7 @@
     background: linear-gradient(to bottom, white, #ea7525);
   }
 
+   
   .card {
     position: absolute;
     width: 90%;
