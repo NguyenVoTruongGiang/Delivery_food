@@ -61,7 +61,7 @@
   // Hàm gọi API để lấy danh sách sản phẩm (Popular Items)
   async function fetchProduct() {
     try {
-      const response = await fetch(`${baseUrl}/product`, {
+      const response = await fetch(`${baseUrl}/products`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
