@@ -1,7 +1,8 @@
 <!-- src/pages/Home/Home.svelte -->
 <script>
   export let onLogout;
-  export let onProductDetail; // Hàm điều hướng đến trang chi tiết sản phẩm
+  export let onProductDetail;
+  export let onPayment;
   import { onMount, onDestroy } from "svelte";
   import SlideBarHome from "./SlideBarHome.svelte";
 
@@ -18,17 +19,17 @@
   let banners = [
     {
       text: "Get your 30% daily discount now!",
-      image: "https://via.placeholder.com/200x150",
+      image: "/assets/food_img/food_img/download (3).jpg",
       alt: "Burger",
     },
     {
       text: "Special Offer: Free Delivery Today!",
-      image: "https://via.placeholder.com/200x150",
+      image: "/assets/food_img/food_img/download (11).jpg",
       alt: "Pizza",
     },
     {
       text: "Try Our New Menu Items!",
-      image: "https://via.placeholder.com/200x150",
+      image: "/assets/food_img/food_img/download (2).jpg",
       alt: "Sushi",
     },
   ];
@@ -78,28 +79,38 @@
   }
 
   async function fetchCart() {
-  try {
-    const response = await fetch(`${baseUrl}/cart/my_cart`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${localStorage.getItem("token")}`,
-      },
-    });
-    const text = await response.text();
     try {
-      const data = JSON.parse(text);
-      carts = data.cartItems || [];
-      cart_Id = data.id;
-    } catch (e) {
-      console.error("Cart API trả về không phải JSON:", text);
+      const response = await fetch(`${baseUrl}/cart/my_cart`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
+      const text = await response.text();
+      try {
+        const data = JSON.parse(text);
+        carts = data.cartItems || [];
+        cart_Id = data.id;
+      } catch (e) {
+        console.error("Cart API trả về không phải JSON:", text);
+        carts = [];
+      }
+    } catch (error) {
+      console.error("Error fetching cart:", error);
       carts = [];
     }
-  } catch (error) {
-    console.error("Error fetching cart:", error);
-    carts = [];
   }
-}
+
+  async function handlePayment() {
+    try {
+      onPayment();
+      console.log("chuyển qua trang thanh toán thành công");
+    } catch (error) {
+      console.error("Error handling payment:", error);
+      alert("Failed to process payment.");
+    }
+  }
 
   async function updateCartItem(cartItemId, newQuantity) {
     try {
@@ -195,6 +206,27 @@
     onProductDetail(product); // Gọi hàm điều hướng từ props, truyền cả object product
   }
 
+  let showAllProducts = false;
+  let productPage = 0;
+  const productsPerPage = 4;
+
+  $: maxProductPage = Math.ceil(products.length / productsPerPage) - 1;
+  $: displayedProducts = showAllProducts
+    ? products
+    : products.slice(
+        productPage * productsPerPage,
+        (productPage + 1) * productsPerPage
+      );
+
+  function handleSeeAll() {
+    showAllProducts = !showAllProducts;
+    if (!showAllProducts) productPage = 0;
+  }
+
+  function setProductPage(page) {
+    productPage = page;
+  }
+
   function handleLogout() {
     localStorage.removeItem("user"); // Logout user
     onLogout(); // Gọi hàm logout từ props
@@ -221,19 +253,20 @@
             <div class="show-cart">
               {#if carts.length > 0}
                 {#each carts as item}
-                  <div
-                    class="cart-item"
-                    on:click={() => goToProductDetailFromCart(item)}
-                    on:keydown={(e) =>
-                      e.key === "Enter" && goToProductDetailFromCart(item)}
-                    role="button"
-                    tabindex="0"
-                  >
-                    <img
-                      src={item.product.image}
-                      alt={item.product.name}
-                      class="cart-item-image"
-                    />
+                  <div class="cart-item">
+                    <div
+                      on:click={() => goToProductDetailFromCart(item)}
+                      on:keydown={(e) =>
+                        e.key === "Enter" && goToProductDetailFromCart(item)}
+                      role="button"
+                      tabindex="0"
+                    >
+                      <img
+                        src={item.product.image}
+                        alt={item.product.name}
+                        class="cart-item-image"
+                      />
+                    </div>
                     <div class="cart-item-details">
                       <p class="cart-item-name">{item.product.name}</p>
                       {#if item.add_ons}
@@ -262,7 +295,9 @@
                 {/each}
                 <div class="cart-total">
                   <p>Total: €{totalCartPrice}</p>
-                  <button class="payment">Thanh toán</button>
+                  <button class="payment" on:click={handlePayment}
+                    >Thanh toán</button
+                  >
                 </div>
               {:else}
                 <p>Cart is empty</p>
@@ -308,10 +343,12 @@
     <section class="fastest-delivery">
       <div class="section-header">
         <h3>Fastest delivery 🔥</h3>
-        <button class="see-all">See all</button>
+        <button class="see-all" on:click={handleSeeAll}>
+          {showAllProducts ? "Thu gọn lại" : "See all"}
+        </button>
       </div>
       <div class="product-list">
-        {#each products as product}
+        {#each displayedProducts as product}
           <div
             class="product-card"
             on:click={() => goToProductDetail(product)}
@@ -319,7 +356,11 @@
             role="button"
             tabindex="0"
           >
-            <img src={product.image} alt={product.name} />
+            <img
+              style="width: 80px; height: 80px;"
+              src={product.image}
+              alt={product.name}
+            />
             <div class="product-info">
               <h4>{product.name}</h4>
               <p>{product.description}</p>
@@ -334,6 +375,16 @@
           </div>
         {/each}
       </div>
+      {#if !showAllProducts}
+        <div class="pagination">
+          {#each Array(maxProductPage + 1) as _, i}
+            <button
+              class:active={i === productPage}
+              on:click={() => setProductPage(i)}>{i + 1}</button
+            >
+          {/each}
+        </div>
+      {/if}
     </section>
 
     <!-- Popular Items Section -->
@@ -627,43 +678,73 @@
     cursor: pointer;
   }
 
-  .restaurant-list {
+  .product-list {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+  }
+  .pagination {
     display: flex;
-    gap: 15px;
-    overflow-x: auto;
-    padding-bottom: 10px;
+    justify-content: center;
+    margin-top: 10px;
+  }
+  .pagination button {
+    margin: 0 4px;
+    padding: 4px 10px;
+    border: 1px solid #ccc;
+    background: #fff;
+    cursor: pointer;
+    border-radius: 4px;
+  }
+  .pagination button.active {
+    background: #ff4d4f;
+    color: #fff;
+    border-color: #ff4d4f;
   }
 
-  .restaurant-card {
+  /* .product-card {
     background-color: #fff;
     border-radius: 15px;
-    width: 250px;
-    flex-shrink: 0;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
     overflow: hidden;
-    cursor: pointer; /* Thêm con trỏ để người dùng biết có thể click */
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 10px;
+  } */
+
+  .product-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
   }
 
-  .restaurant-card img {
-    width: 100%;
-    height: 150px;
+  .product-card img {
     object-fit: cover;
+    display: block;
+    margin: 0 auto;
   }
 
-  .restaurant-info {
+  .product-info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
     padding: 10px;
   }
 
-  .restaurant-info h4 {
+  .product-info h4 {
+    height: 35px;
     font-size: 16px;
     font-weight: bold;
-    margin-bottom: 5px;
+    margin: 5px 00;
   }
 
-  .restaurant-info p {
+  .product-info p {
+    height: 35px;
     font-size: 12px;
     color: #888;
-    margin-bottom: 5px;
+    margin: 5px 0;
   }
 
   .details {
