@@ -4,51 +4,47 @@
   import { onMount } from "svelte";
 
   let userProfile = {
-    firstName: "Kathy",
-    lastName: "Berry",
+    firstName: "giang",
     address: "",
     city: "",
     postalCode: "",
   };
   let profiles = [
     {
-      firstName: "John",
-      lastName: "Doe",
+      firstName: "kolikoli",
       address: "123 Main St",
       city: "New York",
       postalCode: "10001",
     },
     {
-      firstName: "Jane",
-      lastName: "Smith",
+      firstName: "giangkoli",
       address: "456 Oak Ave",
       city: "Los Angeles",
       postalCode: "90001",
     },
   ];
-  let selectedProfileIndex = 0; // Mặc định chọn profile đầu tiên
+  let selectedProfileIndex = 0; 
   let paymentMethod = "";
   let order = {
-    id: "ORD-001",
+    id: "1",
     items: [
       {
         name: "Cheese Burger",
         quantity: 2,
-        price: "€5.00",
-        addOns: ["Parmesan cheese (€2.50)", "Sauce (€1.50)"],
+        price: "$5.00",
+        addOns: ["Parmesan cheese ($2.50)", "Sauce ($1.50)"],
       },
-      { name: "Sushi Platter", quantity: 1, price: "€8.00", addOns: [] },
+      { name: "Sushi Platter", quantity: 1, price: "$8.00", addOns: [] },
     ],
-    subtotal: "€18.00",
-    deliveryFee: "€2.00",
-    total: "€20.00",
+    subtotal: "$18.00",
+    deliveryFee: "$2.00",
+    total: "$20.00",
   };
 
   onMount(() => {
     const params = new URLSearchParams(window.location.search);
     // Lấy dữ liệu profile từ query params
     userProfile.firstName = params.get("firstName") || userProfile.firstName;
-    userProfile.lastName = params.get("lastName") || userProfile.lastName;
     userProfile.address = params.get("address") || userProfile.address;
     userProfile.city = params.get("city") || userProfile.city;
     userProfile.postalCode = params.get("postalCode") || userProfile.postalCode;
@@ -60,8 +56,7 @@
     // Nếu có profile từ params, tìm và chọn nó trong danh sách
     const defaultProfile = profiles.find(
       (p) =>
-        p.firstName === userProfile.firstName &&
-        p.lastName === userProfile.lastName
+        p.firstName === userProfile.firstName
     );
     selectedProfileIndex =
       profiles.indexOf(defaultProfile) !== -1
@@ -86,7 +81,6 @@
     }
     const params = new URLSearchParams({
       firstName: userProfile.firstName,
-      lastName: userProfile.lastName,
       address: userProfile.address,
       city: userProfile.city,
       postalCode: userProfile.postalCode,
@@ -99,7 +93,6 @@
   function editAddress() {
     const params = new URLSearchParams({
       firstName: userProfile.firstName,
-      lastName: userProfile.lastName,
       address: userProfile.address,
       city: userProfile.city,
       postalCode: userProfile.postalCode,
@@ -148,7 +141,7 @@
     <!-- Shipping Address -->
     <section class="shipping-address">
       <h2>Shipping Address</h2>
-      <p>{userProfile.firstName} {userProfile.lastName}</p>
+      <p>{userProfile.firstName}</p>
       <p>{userProfile.address}</p>
       <p>{userProfile.city}, {userProfile.postalCode}</p>
       {#if !userProfile.address || !userProfile.city || !userProfile.postalCode}
