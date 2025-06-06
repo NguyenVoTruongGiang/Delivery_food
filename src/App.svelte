@@ -20,6 +20,7 @@
   import Orders from "./Admin/OrderManager/OrderManager.svelte";
   import Drivers from "./Admin/Driver/Drivers.svelte";
   import RestaurantManager from "./Admin/Restaurants/RestaurantManager.svelte";
+  import Analytics from "./Admin/Analytics/Analytics.svelte";
   import ProductOrderDetail from "./pages/Pay/ProductOrderDetail.svelte";
   import Checkout from "./pages/Pay/Checkout.svelte";
   import Pay from "./pages/Pay/Pay.svelte";
@@ -28,7 +29,7 @@
     router.goto("/home");
   }
 
-  function onGoHome () {
+  function onGoHome() {
     router.goto("/home");
   }
 
@@ -45,7 +46,7 @@
   }
 
   function onProductDetail(product) {
-	localStorage.setItem("selectedProduct", JSON.stringify(product));
+    localStorage.setItem("selectedProduct", JSON.stringify(product));
     router.goto(`/product/${product.id}`); // Điều hướng đến trang chi tiết sản phẩm với id cụ thể
   }
 
@@ -57,7 +58,7 @@
     router.goto("/restaurant");
   }
 
-  function onPayment () {
+  function onPayment() {
     router.goto("/checkout");
   }
 </script>
@@ -70,7 +71,9 @@
 <Route path="/register"><Register {onSignUp} /></Route>
 <Route path="/newPass"><NewPassword {onSend} /></Route>
 <Route path="/verificate"><Verificate /></Route>
-<Route path="/home"><Home {onRestaurant} {onLogout} {onProductDetail} {onPayment} /></Route>
+<Route path="/home"
+  ><Home {onRestaurant} {onLogout} {onProductDetail} {onPayment} /></Route
+>
 <Route path="/restaurant"><Restaurant /></Route>
 <Route path="/search"><Search /></Route>
 <Route path="/favorite"><Favorite /></Route>
@@ -80,7 +83,7 @@
 </Route>
 <Route path="/product"><Product /></Route>
 <Route path="/product/:id">
-  <ProductDetail {onGoHome}/>
+  <ProductDetail {onGoHome} />
 </Route>
 <Route path="/product/map"><Map /></Route>
 <Route path="/admin">
@@ -98,6 +101,9 @@
 <Route path="/admin/restaurants">
   <RestaurantManager />
 </Route>
+<Route path="/admin/analytics">
+  <Analytics />
+</Route>
 <Route path="/pay">
   <Pay />
 </Route>
@@ -105,5 +111,5 @@
   <Checkout />
 </Route>
 <Route path="/productOrderDetail">
-  <ProductOrderDetail/>
+  <ProductOrderDetail />
 </Route>

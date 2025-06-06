@@ -3,11 +3,11 @@
     import Sidebar from '../AdminPage/Sidebar.svelte';
     import Header from '../AdminPage/Header.svelte';
   
-    let adminName = "John";
+    let adminName = "Giang";
     let customers = [
-      { id: "CUS-001", name: "Sarah Johnson", orders: 12, totalSpent: "$450.00" },
-      { id: "CUS-002", name: "Mike Smith", orders: 8, totalSpent: "$320.00" },
-      { id: "CUS-003", name: "Emily Davis", orders: 5, totalSpent: "$180.00" },
+      { id: "1", name: "giang", email:"giang@gmail.com", orders: 12, role: 2, totalSpent: "$450.00" },
+      { id: "2", name: "kolikoli", email:"kolikoli@gmail.com", orders: 8, role: 2, totalSpent: "$320.00" },
+      { id: "3", name: "giangkoli", email:"giangkoli@gmail.com", orders: 5, role: 2, totalSpent: "$180.00" },
     ];
   
     function viewCustomer(customerId) {
@@ -29,9 +29,12 @@
               <tr>
                 <th>ID</th>
                 <th>Name</th>
+                <th>Email</th>
                 <th>Orders</th>
+                <th>Role</th>
                 <th>Total Spent</th>
                 <th>Actions</th>
+                <th>Edit</th>
               </tr>
             </thead>
             <tbody>
@@ -39,13 +42,20 @@
                 <tr>
                   <td>{customer.id}</td>
                   <td>
-                    <img src="https://via.placeholder.com/30" alt="Customer" />
                     {customer.name}
                   </td>
+                  <td>{customer.email}</td>
                   <td>{customer.orders}</td>
+                  <td>
+                    <span class="role {customer.role === 1 ? 'admin' : 'user'}">
+                      {customer.role === 1 ? 'Admin' : 'User'}
+                    </span>
                   <td>{customer.totalSpent}</td>
                   <td>
                     <button on:click={() => viewCustomer(customer.id)}>👁️</button>
+                  </td>
+                  <td>
+                    <button >Edit</button>
                   </td>
                 </tr>
               {/each}

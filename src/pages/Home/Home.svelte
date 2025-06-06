@@ -19,17 +19,17 @@
   let banners = [
     {
       text: "Get your 30% daily discount now!",
-      image: "/assets/food_img/food_img/download (3).jpg",
+      image: "/assets/food_img/food_img/burgerthit.jpg",
       alt: "Burger",
     },
     {
       text: "Special Offer: Free Delivery Today!",
-      image: "/assets/food_img/food_img/download (11).jpg",
+      image: "/assets/food_img/food_img/pizzaNam.jpg",
       alt: "Pizza",
     },
     {
       text: "Try Our New Menu Items!",
-      image: "/assets/food_img/food_img/download (2).jpg",
+      image: "/assets/food_img/food_img/sushi.jpg",
       alt: "Sushi",
     },
   ];
@@ -40,19 +40,28 @@
   let cart_Id = user?.cart_id || 0; // Lấy cart_id từ thông tin người dùng
 
   $: totalCartPrice = carts
-    .reduce((sum, item) => {
-      const product = products.find((p) => p.id === item.product_id);
-      const productPrice = product
-        ? parseFloat(product.price.replace("€", ""))
-        : 0;
-      const addOnsPrice = item.add_ons
-        ? item.add_ons.reduce((addOnSum, addOn) => {
-            return addOnSum + parseFloat(addOn.price.replace("€", ""));
-          }, 0)
-        : 0;
-      return sum + (productPrice + addOnsPrice) * item.quantity;
-    }, 0)
-    .toFixed(2);
+  .reduce((sum, item) => {
+    // Ưu tiên lấy giá từ item.product nếu có, nếu không thì tìm trong products
+    let price = 0;
+    if (item.product && item.product.price) {
+      price = parseFloat(
+        (item.product.price + "").replace(/[^\d.]/g, "")
+      );
+    } else {
+      const product = products.find((p) => p.id === (item.product_id || item.productId));
+      price = product ? parseFloat((product.price + "").replace(/[^\d.]/g, "")) : 0;
+    }
+    // Tính tổng add-ons nếu có
+    // let addOnsPrice = 0;
+    // if (item.add_ons && Array.isArray(item.add_ons)) {
+    //   addOnsPrice = item.add_ons.reduce((sum, addOn) => {
+    //     return sum + parseFloat((addOn.price + "").replace(/[^\d.]/g, ""));
+    //   }, 0);
+    // }
+    // return sum + (price + addOnsPrice) * item.quantity;
+    return sum + (price) * item.quantity;
+  }, 0)
+  .toFixed(2);
 
   let currentBannerIndex = 0;
   let intervalId;
@@ -253,14 +262,17 @@
 <main>
   <div class="home-page">
     <!-- Header -->
-    <header style="display: flex; justify-content: space-around;">
+    <header style="display: flex; justify-content: space-between;">
       <div class="address">
         <span>{nameRes}</span>
       </div>
 
       <div class="user-info">
-        <span>{user?.name}</span>
-        <button on:click={handleLogout}>logout</button>
+        <SlideBarHome />
+        <a href="profile" class="user-name">
+          <span>{user?.name}</span>
+        </a>
+        <a href="" class="logout_btn" on:click={handleLogout}>logout</a>
 
         <div class="user-cart">
           <button class="icon-cart" on:click={fetchCart}
@@ -309,7 +321,7 @@
                   </div>
                 {/each}
                 <div class="cart-total">
-                  <p>Total: €{totalCartPrice}</p>
+                  <p>Total: {totalCartPrice} $</p>
                   <button class="payment" on:click={handlePayment}
                     >Thanh toán</button
                   >
@@ -326,13 +338,13 @@
     <!-- Categories -->
     <section class="categories">
       <div class="category-list">
-        <button
+        <!-- <button
                 class="category-tag"
                 class:active={selectedCategory === ""}
                 on:click={() => filterByCategory("")}
         >
           All
-        </button>
+        </button> -->
         {#each categories as category}
           <button
                   class="category-tag"
@@ -449,14 +461,14 @@
       </div>
     </section>
 
-    <!-- Bottom Navigation -->
-    <SlideBarHome />
   </div>
 </main>
 
 <style>
   /* Reset and Global Styles */
   * {
+    text-decoration: none;
+    list-style: none;
     margin: 0;
     padding: 0;
     box-sizing: border-box;
@@ -472,7 +484,7 @@
   /* Header */
   header {
     display: flex;
-    justify-content: space-around;
+    justify-content: space-between;
     padding: 10px 20px;
     background-color: #fff;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
@@ -489,11 +501,20 @@
   .user-info {
     display: flex;
     justify-content: space-around;
+    align-items: center;
     font-size: 14px;
   }
 
   .user-info span {
     padding: 10px;
+  }
+
+  .logout_btn {
+    text-decoration: none;
+    color: black;
+    padding: 10px;
+    cursor: pointer;
+    font-size: 14px;
   }
   .user-cart {
     display: flex;

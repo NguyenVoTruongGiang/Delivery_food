@@ -34,7 +34,7 @@
     </div> -->
     <div class="content">
       <h1>Welcome to <br /><span>Fast Food</span></h1>
-      <!-- <h1><a href="/admin"> test admin</a></h1> -->
+      <h1><a href="/admin"> test admin</a></h1>
       <p>Get your favourite meals delivered quickly right to your doorstep</p>
 
       <!-- Start with Email -->
@@ -140,10 +140,10 @@
     background: black;
   }
   
-  .btn.btn-email a {
+  /* .btn.btn-email a {
     color: white;
     text-decoration: none;
-  }
+  } */
 
   .btn-email:hover {
     background: #333;
