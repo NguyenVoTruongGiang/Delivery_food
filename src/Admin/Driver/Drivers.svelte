@@ -3,7 +3,7 @@
     import Sidebar from '../AdminPage/Sidebar.svelte';
     import Header from '../AdminPage/Header.svelte';
   
-    let adminName = "John";
+    let adminName = "Giang";
     let drivers = [
       { id: "DRV-001", name: "John Doe", status: "Available", ordersDelivered: 45 },
       { id: "DRV-002", name: "Jane Smith", status: "On Delivery", ordersDelivered: 32 },

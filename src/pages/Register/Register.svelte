@@ -1,31 +1,28 @@
 <script>
-  export let onSignUp;
+  export let onSend;
   let email = "";
   let name = "";
   let password = "";
-  let url = "http://localhost:8080/user/register";
+  let otp = Array(6).fill("");
+  let url = "http://localhost:8080/user/send-register-otp";
 
-  async function handleRegister() {
-    console.log({ email, name, password });
+  async function handleValidate() {
     try {
-      const response = await fetch(url, {
+      console.log (email);
+      await fetch(url, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email, name, password }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          to: email,
+        }),
       });
 
-      if (!response.ok) {
-        throw new Error("Invalid email or name or password");
-      }
-
-      const data = await response.json();
-      console.log("Đăng ký thành công:", data);
-      onSignUp();
-      console.log("Đăng ký thành công")
+      localStorage.setItem("email", email);
+      localStorage.setItem("name", name);
+      localStorage.setItem("password", password);
+      onSend();
     } catch (error) {
-      console.error("Đăng ký thất bại:", error.message);
+      alert("Gửi OTP thất bại!");
     }
   }
 </script>
@@ -34,7 +31,7 @@
   <div class="card">
     <h1>Sign Up</h1>
 
-    <form on:submit|preventDefault={handleRegister}>
+    <form on:submit|preventDefault={handleValidate}>
       <p>Email</p>
       <input type="email" bind:value={email} placeholder="Your email" />
 
@@ -46,7 +43,7 @@
 
       <div class="forgot-password">Forgot password?</div>
 
-      <button class="btn-login">Sign Up</button>
+      <button class="btn-login" on:click={handleValidate}>Sign Up</button>
     </form>
 
     <p>

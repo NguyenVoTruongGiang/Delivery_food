@@ -3,26 +3,23 @@
   import Sidebar from "../AdminPage/Sidebar.svelte";
   import Header from "../AdminPage/Header.svelte";
 
-  let adminName = "John";
+  let adminName = "Giang";
   let orders = [
     {
       id: "#ORD-001",
       customer: "Sarah Johnson",
-      restaurant: "Burger King",
       status: "Delivered",
       amount: "$35.50",
     },
     {
       id: "#ORD-002",
       customer: "Mike Smith",
-      restaurant: "Pizza Hut",
       status: "In Progress",
       amount: "$42.75",
     },
     {
       id: "#ORD-003",
       customer: "Emily Davis",
-      restaurant: "KFC",
       status: "Cancelled",
       amount: "$28.00",
     },

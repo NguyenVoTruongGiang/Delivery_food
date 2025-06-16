@@ -155,7 +155,7 @@
   {/if}
 
   <!-- Bottom Navigation -->
-  <SlideBarHome />
+  <!-- <SlideBarHome /> -->
 </div>
 
 <style>

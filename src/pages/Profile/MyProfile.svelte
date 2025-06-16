@@ -1,45 +1,71 @@
 <!-- src/pages/Profile/MyProfile.svelte -->
 <script>
-    import { router } from "tinro";
-    import { onMount } from "svelte";
-  
-    let profileDetails = {
-      firstName: "Kathy",
-      lastName: "Berry",
-      address: "",
-      city: "",
-      postalCode: "",
-    };
-  
-    onMount(() => {
-      const params = new URLSearchParams(window.location.search);
-      profileDetails.firstName = params.get("firstName") || profileDetails.firstName;
-      profileDetails.lastName = params.get("lastName") || profileDetails.lastName;
-      profileDetails.address = params.get("address") || profileDetails.address;
-      profileDetails.city = params.get("city") || profileDetails.city;
-      profileDetails.postalCode = params.get("postalCode") || profileDetails.postalCode;
-    });
-  
-    function saveProfile() {
-      if (!profileDetails.firstName || !profileDetails.lastName || !profileDetails.address || !profileDetails.city || !profileDetails.postalCode) {
-        alert("Please fill in all fields!");
-        return;
-      }
-      const params = new URLSearchParams({
-        firstName: profileDetails.firstName,
-        lastName: profileDetails.lastName,
-        address: profileDetails.address,
-        city: profileDetails.city,
-        postalCode: profileDetails.postalCode,
-      }).toString();
+  import { onMount } from "svelte";
+  import { router } from "tinro";
+
+  const userId = Number(localStorage.getItem("user_id"));
+  const token = localStorage.getItem("token");
+
+  let profileDetails = {
+    email: "",
+    name: "",
+    address: "",
+    phone: "",
+  };
+
+  // Lấy thông tin user khi vào trang
+  onMount(async () => {
+    try {
+      const response = await fetch(`http://localhost:8080/user/${userId}`, {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      if (!response.ok) throw new Error("Failed to fetch user profile");
+      const user = await response.json();
+      // Gán dữ liệu vào profileDetails (tùy theo cấu trúc User entity của bạn)
+      profileDetails.email = user.email || "";
+      profileDetails.name = user.name || "";
+      profileDetails.address = user.address || "";
+      profileDetails.phone = user.phone || "";
+    } catch (e) {
+      alert("Không thể lấy thông tin user!");
+    }
+  });
+
+  // Hàm lưu profile (update)
+  async function saveProfile() {
+    if (
+      !profileDetails.email ||
+      !profileDetails.name ||
+      !profileDetails.address ||
+      !profileDetails.phone
+    ) {
+      alert("Please fill in all fields!");
+      return;
+    }
+    try {
+      const response = await fetch(`http://localhost:8080/user/${userId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(profileDetails),
+      });
+      if (!response.ok) throw new Error("Failed to update profile");
       alert("Profile updated successfully!");
-      router.goto(`/profile?${params}`);
-    }
-  
-    function cancel() {
       router.goto("/profile");
+    } catch (e) {
+      alert("Cập nhật thất bại!");
     }
-  </script>
+  }
+
+  function cancel() {
+    router.goto("/profile");
+  }
+</script>
   
   <div class="my-profile-page">
     <header>
@@ -50,23 +76,20 @@
     <section class="profile-form">
       <div class="form-group">
         <label for="first-name">First Name</label>
-        <input type="text" id="first-name" bind:value={profileDetails.firstName} placeholder="First Name" />
+        <input type="text" id="first-name" bind:value={profileDetails.firstName} placeholder="Name" />
       </div>
-      <div class="form-group">
-        <label for="last-name">Last Name</label>
-        <input type="text" id="last-name" bind:value={profileDetails.lastName} placeholder="Last Name" />
-      </div>
+
       <div class="form-group">
         <label for="address">Address</label>
         <input type="text" id="address" bind:value={profileDetails.address} placeholder="Address" />
       </div>
       <div class="form-group">
         <label for="city">City</label>
-        <input type="text" id="city" bind:value={profileDetails.city} placeholder="City" />
+        <input type="email" id="email" bind:value={profileDetails.email} placeholder="Email" />
       </div>
       <div class="form-group">
-        <label for="postal-code">Postal Code</label>
-        <input type="text" id="postal-code" bind:value={profileDetails.postalCode} placeholder="Postal Code" />
+        <label for="postal-code">phone</label>
+        <input type="text" id="postal-code" bind:value={profileDetails.phone} placeholder="phone" />
       </div>
       <div class="form-actions">
         <button class="save-btn" on:click={saveProfile}>Save Profile</button>

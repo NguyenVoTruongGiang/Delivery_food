@@ -24,6 +24,7 @@
 
       localStorage.setItem("user", JSON.stringify(data.user || data)); // Lưu thông tin người dùng vào localStorage
       localStorage.setItem("token", data.token);
+      localStorage.setItem("user_id", data.user_id);
       onLoginSuccess();
     } catch (error) {
       console.error("Đăng nhập thất bại:", error.message);

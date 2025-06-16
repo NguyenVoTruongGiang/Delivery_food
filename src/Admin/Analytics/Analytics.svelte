@@ -4,7 +4,7 @@
     import Header from '../AdminPage/Header.svelte';
     import StatCard from '../AdminPage/StatCard.svelte';
   
-    let adminName = "John";
+    let adminName = "Giang";
     let stats = [
       { title: "Total Orders", value: "2,451", change: "+12.5% from yesterday", icon: "🛒" },
       { title: "Active Drivers", value: "156", change: "+8.2% from yesterday", icon: "🚗" },

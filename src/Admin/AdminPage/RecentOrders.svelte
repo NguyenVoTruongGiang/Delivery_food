@@ -1,8 +1,8 @@
 <!-- src/components/RecentOrders.svelte -->
 <script>
     let orders = [
-      { id: "#ORD-001", customer: "Sarah Johnson", restaurant: "Burger King", status: "Delivered", amount: "$35.50" },
-      { id: "#ORD-002", customer: "Mike Smith", restaurant: "Pizza Hut", status: "In Progress", amount: "$42.75" },
+      { id: "1", customer: "giangkoli", restaurant: "Burger King", status: "Delivered", amount: "$35.50" },
+      { id: "2", customer: "kolikoli", restaurant: "Pizza Hut", status: "In Progress", amount: "$42.75" },
     ];
   
     function viewOrder(orderId) {
@@ -29,7 +29,6 @@
           <tr>
             <td>{order.id}</td>
             <td>
-              <img src="https://via.placeholder.com/30" alt="Customer" />
               {order.customer}
             </td>
             <td>{order.restaurant}</td>

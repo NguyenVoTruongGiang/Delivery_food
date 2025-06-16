@@ -3,14 +3,14 @@
     import { router } from "tinro";
   
     let order = {
-      id: "ORD-001",
+      id: "1",
       items: [
-        { name: "Cheese Burger", quantity: 2, price: "€5.00", addOns: ["Parmesan cheese (€2.50)", "Sauce (€1.50)"] },
-        { name: "Sushi Platter", quantity: 1, price: "€8.00", addOns: [] },
+        { name: "Cheese Burger", quantity: 2, price: "$5.00", addOns: ["Parmesan cheese ($2.50)", "Sauce ($1.50)"] },
+        { name: "Sushi Platter", quantity: 1, price: "$8.00", addOns: [] },
       ],
-      subtotal: "€18.00",
-      deliveryFee: "€2.00",
-      total: "€20.00",
+      subtotal: "$18.00",
+      deliveryFee: "$2.00",
+      total: "$20.00",
     };
   
     function goToCheckout() {

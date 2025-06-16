@@ -3,17 +3,17 @@
     import { router } from "tinro";
     import { onMount } from "svelte";
   
-    let userProfile = { firstName: "Kathy", lastName: "Berry", address: "", city: "", postalCode: "" };
+    let userProfile = { firstName: "giang", address: "", city: "", postalCode: "" };
     let paymentMethod = "";
     let order = {
       id: "ORD-001",
       items: [
-        { name: "Cheese Burger", quantity: 2, price: "€5.00", addOns: ["Parmesan cheese (€2.50)", "Sauce (€1.50)"] },
-        { name: "Sushi Platter", quantity: 1, price: "€8.00", addOns: [] },
+        { name: "Cheese Burger", quantity: 2, price: "$5.00", addOns: ["Parmesan cheese ($2.50)", "Sauce ($1.50)"] },
+        { name: "Sushi Platter", quantity: 1, price: "$8.00", addOns: [] },
       ],
-      subtotal: "€18.00",
-      deliveryFee: "€2.00",
-      total: "€20.00",
+      subtotal: "$18.00",
+      deliveryFee: "$2.00",
+      total: "$20.00",
     };
     let cardNumber = "";
     let expiryDate = "";
@@ -23,7 +23,6 @@
     onMount(() => {
       const params = new URLSearchParams(window.location.search);
       userProfile.firstName = params.get("firstName") || userProfile.firstName;
-      userProfile.lastName = params.get("lastName") || userProfile.lastName;
       userProfile.address = params.get("address") || userProfile.address;
       userProfile.city = params.get("city") || userProfile.city;
       userProfile.postalCode = params.get("postalCode") || userProfile.postalCode;
@@ -128,7 +127,7 @@
       <!-- Shipping Address -->
       <section class="shipping-address">
         <h2>Shipping Address</h2>
-        <p>{userProfile.firstName} {userProfile.lastName}</p>
+        <p>{userProfile.firstName}</p>
         <p>{userProfile.address}</p>
         <p>{userProfile.city}, {userProfile.postalCode}</p>
       </section>

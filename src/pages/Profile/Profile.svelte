@@ -1,34 +1,60 @@
 <!-- src/Profile.svelte -->
 <script>
+  export let onLogout;
   import SlideBarHome from "../Home/SlideBarHome.svelte";
+  const baseUrl = "http://localhost:8080";
 
-  let user = {
-    name: "Kathy Berry",
-    email: "kathyberry@gmail.com",
-    avatar: "https://via.placeholder.com/80",
-  };
+  const user_id = Number(localStorage.getItem("user_id"));
+  const token = localStorage.getItem("token");
 
-  let menuItems = [
-    { name: "My Profile", icon: "👤" },
-    { name: "My Orders", icon: "📦" },
-    { name: "Delivery Address", icon: "📍" },
-    { name: "Payment Methods", icon: "💳" },
-    { name: "Contact Us", icon: "📞" },
-    { name: "Help & FAQ", icon: "❓" },
-  ];
+  let user = JSON.parse(localStorage.getItem("user")); // Lấy thông tin người dùng từ localStorage
+  console.log(user?.name);
+
+  if (!user) {
+    // Chưa login thì chuyển hướng
+    window.location.href = "/login";
+  }
+
+  // async function fetchUser() {
+  //   try {
+  //     const response = await fetch(`${baseUrl}/user/${user_id}`, {
+  //       headers: {
+  //         "Content-Type": "application/json",
+  //         Authorization: `Bearer ${token}`,
+  //       },
+  //     });
+
+  //     if (!response.ok) {
+  //       throw new Error("Failed to fetch user data");
+  //     }
+
+  //     return await response.json();
+  //   } catch (error) {
+  //     console.error("Error fetching user data:", error);
+  //     return null;
+  //   }
+  // }
+
+  // let menuItems = [
+  //   { name: "My Profile", icon: "👤" },
+  //   { name: "My Orders", icon: "📦" },
+  //   { name: "Delivery Address", icon: "📍" },
+  //   { name: "Payment Methods", icon: "💳" },
+  //   { name: "Contact Us", icon: "📞" },
+  //   { name: "Help & FAQ", icon: "❓" },
+  // ];
 
   function logout() {
-    alert("Logging out...");
-    // Thêm logic đăng xuất tại đây
+    onLogout();
+    console.log("đăng xuất thành công");
   }
 </script>
 
 <main>
   <div class="profile-page">
-
     <!-- User Info -->
     <section class="user-info">
-      <img src={user.avatar} alt="Avatar" class="avatar" />
+      <!-- <img src={user.avatar} alt="Avatar" class="avatar" /> -->
       <h2>{user.name}</h2>
       <p>{user.email}</p>
     </section>
@@ -36,11 +62,11 @@
     <!-- Menu Items -->
     <section class="menu">
       <div class="menu-item">
-          <a href="/my-profile" class="icon">👤</a>
-          <a href="/my-profile">My Profile</a>
+        <a href="/my-profile" class="icon">👤</a>
+        <a href="/my-profile">My Profile</a>
       </div>
       <div class="menu-item">
-        <a href="/my-orders">
+        <a href="/order">
           <span class="icon">📦</span>
           <span>My Orders</span>
         </a>
@@ -171,5 +197,4 @@
   .logout-btn:hover {
     background-color: #e67e22;
   }
-
 </style>
