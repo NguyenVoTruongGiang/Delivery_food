@@ -17,6 +17,7 @@
   import TrackingOrder from "./pages/Order/TrackingOrder.svelte";
   import Map from "./pages/Map/Map.svelte";
   import Home from "./pages/Home/Home.svelte";
+  import About from "./pages/Home/About.svelte";
   import Restaurant from "./pages/Restaurant/Restaurant.svelte";
   import AdminPage from "./Admin/AdminPage/MainAdmin.svelte";
   import Customers from "./Admin/UserManager/Customers.svelte";
@@ -26,6 +27,16 @@
   import ProductOrderDetail from "./pages/Pay/ProductOrderDetail.svelte";
   import Checkout from "./pages/Pay/Checkout.svelte";
   import Pay from "./pages/Pay/Pay.svelte";
+
+   
+  // Admin Components
+  import MainAdmin from "./Admin/AdminPage/MainAdmin.svelte";
+  import UserManager from "./Admin/UserManager/Customers.svelte";
+  import ProductManager from "./Admin/ProductManager/ProductManager.svelte";
+  import OrderManager from "./Admin/OrderManager/OrderManager.svelte";
+  import Contact from "./pages/Home/Contact.svelte";
+
+  export let url = "";
 
   function onLoginSuccess() {
     router.goto("/home");
@@ -80,6 +91,7 @@
 <Route path="/home"
   ><Home {onLogout} {onProductDetail} {onPayment} /></Route
 >
+<Route path="/about"><About /></Route>
 <Route path="/order"><Order {onTrackingOrder}/></Route>
 <Route path="/tracking-order/:id">
   <TrackingOrder />
@@ -97,13 +109,16 @@
   <Category />
 </Route>
 <Route path="map"><Map /></Route>
-<Route path="/admin" let:params>
-  <AdminPage />
-  <Route path="customers"><Customers /></Route>
-  <Route path="orders"><Orders /></Route>
-  <Route path="drivers"><Drivers /></Route>
-  <Route path="analytics"><Analytics /></Route>
-</Route>
+
+<!-- Admin routes -->
+  <Route path="/admin"><MainAdmin /></Route>
+  <Route path="/admin/customers"><UserManager /></Route>
+  <Route path="/admin/products"><ProductManager /></Route>
+  <Route path="/admin/orders"><OrderManager /></Route>
+  <Route path="/admin/analytics"><Analytics /></Route>
+  <Route path="/admin/drivers"><Drivers /></Route>
+  <Route path="/admin/restaurants"><Restaurant /></Route>
+  <Route path="/contact"><Contact /></Route>
 
 <Route path="/pay">
   <Pay />

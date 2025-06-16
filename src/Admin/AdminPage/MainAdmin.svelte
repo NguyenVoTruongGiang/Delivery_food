@@ -1,72 +1,140 @@
-<!-- src/MainAdmin.svelte -->
 <script>
-    import Sidebar from './Sidebar.svelte';
-    import Header from './Header.svelte';
-    import StatCard from './StatCard.svelte';
-    import RecentOrders from './RecentOrders.svelte';
-    import DeliveryMap from './DeliveryMap.svelte';
+  import Sidebar from "./Sidebar.svelte";
+  import Header from "./Header.svelte";
+  import DeliveryMap from "./DeliveryMap.svelte";
+
+  let adminName = "Admin";
   
-    // Sample data for the dashboard (you can replace this with API calls later)
-    let adminName = "Giang";
-    let stats = [
-      { title: "Total Orders", value: "2,451", change: "+12.5% from yesterday", icon: "🛒" },
-      { title: "Active Drivers", value: "156", change: "+8.2% from yesterday", icon: "🚗" },
-      { title: "Revenue", value: "$24,500", change: "+15.3% from yesterday", icon: "💰" },
-      { title: "Active Restaurants", value: "89", change: "+7% from yesterday", icon: "🍽️" },
-    ];
-  </script>
+  // Dashboard statistics
+  let stats = {
+    totalOrders: 0,
+    pendingOrders: 0,
+    completedOrders: 0,
+    totalUsers: 0,
+    totalProducts: 0,
+    revenue: 0
+  };
   
-  <div class="app">
-    <Sidebar />
-    <div class="main-content">
-      <Header {adminName} />
-      <div class="dashboard">
-        <h1>Dashboard Overview</h1>
-        <p>Welcome back, {adminName}!</p>
-        <div class="stats">
-          {#each stats as stat}
-            <StatCard {...stat} />
-          {/each}
+  async function fetchStats() {
+    try {
+      const [ordersRes, usersRes, productsRes] = await Promise.all([
+        fetch("http://localhost:8080/api/admin/orders"),
+        fetch("http://localhost:8080/api/admin/users"),
+        fetch("http://localhost:8080/api/admin/products")
+      ]);
+      
+      if (ordersRes.ok && usersRes.ok && productsRes.ok) {
+        const orders = await ordersRes.json();
+        const users = await usersRes.json();
+        const products = await productsRes.json();
+        
+        stats.totalOrders = orders.length;
+        stats.pendingOrders = orders.filter(o => o.status === "PENDING").length;
+        stats.completedOrders = orders.filter(o => o.status === "COMPLETED").length;
+        stats.totalUsers = users.length;
+        stats.totalProducts = products.length;
+        stats.revenue = orders
+          .filter(o => o.status === "COMPLETED")
+          .reduce((sum, order) => sum + (order.total_price || 0), 0);
+      }
+    } catch (error) {
+      console.error("Error fetching statistics:", error);
+    }
+  }
+  
+  import { onMount } from 'svelte';
+  
+  onMount(() => {
+    fetchStats();
+  });
+</script>
+
+<div class="app">
+  <Sidebar activePage="Dashboard" />
+  <div class="main-content">
+    <Header {adminName} />
+    <div class="dashboard">
+      <h1>Admin Dashboard</h1>
+      <p>Welcome to your admin dashboard.</p>
+      
+      <div class="stats-grid">
+        <div class="stat-card">
+          <h3>Total Orders</h3>
+          <p class="stat-value">{stats.totalOrders}</p>
         </div>
-        <RecentOrders />
-        <DeliveryMap />
+        <div class="stat-card">
+          <h3>Pending Orders</h3>
+          <p class="stat-value">{stats.pendingOrders}</p>
+        </div>
+        <div class="stat-card">
+          <h3>Completed Orders</h3>
+          <p class="stat-value">{stats.completedOrders}</p>
+        </div>
+        <div class="stat-card">
+          <h3>Total Users</h3>
+          <p class="stat-value">{stats.totalUsers}</p>
+        </div>
+        <div class="stat-card">
+          <h3>Products</h3>
+          <p class="stat-value">{stats.totalProducts}</p>
+        </div>
+        <div class="stat-card">
+          <h3>Revenue</h3>
+          <p class="stat-value">{stats.revenue.toLocaleString()} đ</p>
+        </div>
       </div>
+      
+      <DeliveryMap />
     </div>
   </div>
+</div>
+
+<style>
+  .app {
+    display: flex;
+    height: 100vh;
+  }
   
-  <style>
-    .app {
-      display: flex;
-      height: 100vh;
-      font-family: Arial, sans-serif;
-    }
+  .main-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+    background-color: #f9f9f9;
+  }
   
-    .main-content {
-      flex: 1;
-      padding: 20px;
-      background-color: #f5f7fa;
-      overflow-y: auto;
-    }
+  .dashboard {
+    max-width: 1200px;
+    margin: 20px auto;
+  }
   
-    .dashboard {
-      max-width: 1200px;
-      margin: 0 auto;
-    }
+  h1 {
+    font-size: 24px;
+    margin-bottom: 10px;
+  }
   
-    .stats {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 20px;
-      margin: 20px 0;
-    }
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 20px;
+    margin: 30px 0;
+  }
   
-    h1 {
-      font-size: 24px;
-      margin-bottom: 5px;
-    }
+  .stat-card {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  }
   
-    p {
-      color: #888;
-      margin-bottom: 20px;
-    }
-  </style>
+  .stat-card h3 {
+    font-size: 16px;
+    color: #666;
+    margin-bottom: 10px;
+  }
+  
+  .stat-value {
+    font-size: 28px;
+    font-weight: bold;
+    color: #2c3e50;
+  }
+</style>

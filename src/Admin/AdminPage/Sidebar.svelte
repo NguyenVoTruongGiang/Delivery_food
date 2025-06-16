@@ -1,68 +1,126 @@
 <!-- src/components/Sidebar.svelte -->
 <script>
+  export let activePage;
+  
+  const menuItems = [
+    { name: "Dashboard", icon: "dashboard", path: "/admin" },
+    { name: "Users", icon: "people", path: "/admin/users" },
+    { name: "Products", icon: "restaurant_menu", path: "/admin/products" },
+    { name: "Orders", icon: "receipt", path: "/admin/orders" }
+  ];
+  
+  function navigateTo(path) {
+    window.location.href = path;
+  }
 </script>
 
 <div class="sidebar">
-  <div class="logo">FoodDash</div>
+  <div class="logo">
+    <h2>FoodAdmin</h2>
+  </div>
+  
   <nav>
     <ul>
-      <li>
-        <a href="/admin"><span>🏠</span> Dashboard</a>
-      </li>
-      <li>
-        <a href="/admin/orders"><span>📦</span> Orders</a>
-      </li>
-      <li>
-        <a href="/admin/restaurants"><span>🍴</span> Restaurants</a>
-      </li>
-      <li>
-        <a href="/admin/drivers"><span>🚗</span> Drivers</a>
-      </li>
-      <li>
-        <a href="/admin/customers"><span>👥</span> Customers</a>
-      </li>
-      <li>
-        <a href="/admin/analytics"><span>📊</span> Analytics</a>
-      </li>
+      {#each menuItems as item}
+        <li class:active={activePage === item.name}>
+          <button on:click={() => navigateTo(item.path)}>
+            <span class="material-icons">{item.icon}</span>
+            {item.name}
+          </button>
+        </li>
+      {/each}
     </ul>
   </nav>
+  
+  <div class="logout">
+    <button on:click={() => {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      window.location.href = '/login';
+    }}>
+      <span class="material-icons">exit_to_app</span>
+      Logout
+    </button>
+  </div>
 </div>
 
 <style>
   .sidebar {
-    width: 200px;
-    background-color: #fff;
-    border-right: 1px solid #e0e0e0;
-    padding: 20px;
+    width: 250px;
+    background-color: #2c3e50;
+    color: white;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
   }
-
+  
   .logo {
-    font-size: 20px;
-    font-weight: bold;
-    color: #007bff;
-    margin-bottom: 30px;
+    padding: 20px;
+    text-align: center;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
   }
-
-  nav ul {
+  
+  .logo h2 {
+    margin: 0;
+    font-size: 24px;
+  }
+  
+  nav {
+    flex: 1;
+  }
+  
+  ul {
     list-style: none;
     padding: 0;
+    margin: 0;
   }
-
-  nav li {
-    padding: 10px 0;
+  
+  li button {
     display: flex;
     align-items: center;
+    padding: 15px 20px;
+    width: 100%;
+    text-align: left;
+    background: none;
+    border: none;
+    color: #ecf0f1;
     cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.2s;
   }
-
-  nav li span {
+  
+  li button:hover {
+    background-color: rgba(255,255,255,0.1);
+  }
+  
+  li.active button {
+    background-color: rgba(255,255,255,0.2);
+    font-weight: bold;
+  }
+  
+  .material-icons {
     margin-right: 10px;
   }
-
-  .active {
-    background-color: #e6f0ff;
-    color: #007bff;
+  
+  .logout {
+    padding: 20px;
+    border-top: 1px solid rgba(255,255,255,0.1);
+  }
+  
+  .logout button {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: 10px;
+    background-color: rgba(231, 76, 60, 0.8);
+    color: white;
+    border: none;
     border-radius: 5px;
-    padding-left: 10px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+  
+  .logout button:hover {
+    background-color: rgba(231, 76, 60, 1);
   }
 </style>
