@@ -10,8 +10,11 @@
   import Favorite from "./pages/Favorite/Favorite.svelte";
   import Product from "./pages/Product/Product.svelte";
   import ProductDetail from "./pages/Product/ProductDetail.svelte";
+  import Category from "./pages/Product/Category.svelte";
   import NewPassword from "./pages/NewPass/NewPassword.svelte";
   import Verificate from "./pages/Verificate/Verificate.svelte";
+  import Order from "./pages/Order/Order.svelte";
+  import TrackingOrder from "./pages/Order/TrackingOrder.svelte";
   import Map from "./pages/Map/Map.svelte";
   import Home from "./pages/Home/Home.svelte";
   import Restaurant from "./pages/Restaurant/Restaurant.svelte";
@@ -19,7 +22,6 @@
   import Customers from "./Admin/UserManager/Customers.svelte";
   import Orders from "./Admin/OrderManager/OrderManager.svelte";
   import Drivers from "./Admin/Driver/Drivers.svelte";
-  import RestaurantManager from "./Admin/Restaurants/RestaurantManager.svelte";
   import Analytics from "./Admin/Analytics/Analytics.svelte";
   import ProductOrderDetail from "./pages/Pay/ProductOrderDetail.svelte";
   import Checkout from "./pages/Pay/Checkout.svelte";
@@ -51,11 +53,15 @@
   }
 
   function onSend() {
-    router.goto("/verificate");
+    router.goto("/validate");
   }
 
-  function onRestaurant() {
-    router.goto("/restaurant");
+  function onOrder() {
+    router.goto("/order");
+  }
+
+  function onTrackingOrder() {
+    router.goto("/tracking-order");
   }
 
   function onPayment() {
@@ -68,42 +74,37 @@
 <Route path="/"><Welcome /></Route>
 <Route path="/login"><Login {onLoginSuccess} {onLoginAdmin} {onLogout} /></Route
 >
-<Route path="/register"><Register {onSignUp} /></Route>
+<Route path="/register"><Register {onSignUp} {onSend} /></Route>
 <Route path="/newPass"><NewPassword {onSend} /></Route>
-<Route path="/verificate"><Verificate /></Route>
+<Route path="/validate"><Verificate {onSignUp} {onSend}/></Route>
 <Route path="/home"
-  ><Home {onRestaurant} {onLogout} {onProductDetail} {onPayment} /></Route
+  ><Home {onLogout} {onProductDetail} {onPayment} /></Route
 >
+<Route path="/order"><Order {onTrackingOrder}/></Route>
+<Route path="/tracking-order/:id">
+  <TrackingOrder />
+</Route>
 <Route path="/restaurant"><Restaurant /></Route>
 <Route path="/search"><Search /></Route>
 <Route path="/favorite"><Favorite /></Route>
-<Route path="/profile"><Profile /></Route>
-<Route path="/my-profile">
-  <MyProfile />
-</Route>
+<Route path="/profile"><Profile {onOrder} /></Route>
+<Route path="/my-profile"><MyProfile /></Route>
 <Route path="/product"><Product /></Route>
 <Route path="/product/:id">
   <ProductDetail {onGoHome} />
 </Route>
-<Route path="/product/map"><Map /></Route>
-<Route path="/admin">
+<Route path="/product/category">
+  <Category />
+</Route>
+<Route path="map"><Map /></Route>
+<Route path="/admin" let:params>
   <AdminPage />
+  <Route path="customers"><Customers /></Route>
+  <Route path="orders"><Orders /></Route>
+  <Route path="drivers"><Drivers /></Route>
+  <Route path="analytics"><Analytics /></Route>
 </Route>
-<Route path="/admin/customers">
-  <Customers />
-</Route>
-<Route path="/admin/orders">
-  <Orders />
-</Route>
-<Route path="/admin/drivers">
-  <Drivers />
-</Route>
-<Route path="/admin/restaurants">
-  <RestaurantManager />
-</Route>
-<Route path="/admin/analytics">
-  <Analytics />
-</Route>
+
 <Route path="/pay">
   <Pay />
 </Route>

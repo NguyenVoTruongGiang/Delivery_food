@@ -66,7 +66,7 @@
         <a href="/my-profile">My Profile</a>
       </div>
       <div class="menu-item">
-        <a href="/my-orders">
+        <a href="/order">
           <span class="icon">📦</span>
           <span>My Orders</span>
         </a>

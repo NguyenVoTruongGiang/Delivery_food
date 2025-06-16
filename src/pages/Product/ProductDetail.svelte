@@ -1,15 +1,26 @@
-<!-- src/pages/product/ProductDetail.svelte -->
 <script>
   import { onMount } from "svelte";
   export let onGoHome;
+  export let productData;
 
   let product = null;
   let baseUrl = "http://localhost:8080";
   let isLoading = true;
   let error = null;
+  let cartItemId = "";
+  let quantity = 1;
+  let isFavorite = false;
+
+  let add_ons = [
+    { name: "Phô mai parmesan", price: "€2.50", selected: false },
+    { name: "Nước sốt cà chua", price: "€1.50", selected: false },
+    { name: "Nước sốt cay", price: "€1.50", selected: false },
+    { name: "Nước sốt kem", price: "€2.50", selected: false },
+  ];
 
   async function fetchProduct(product_id) {
     try {
+      console.log(`Fetching product with ID: ${product_id}`);
       const response = await fetch(`${baseUrl}/products/${product_id}`, {
         method: "GET",
         headers: {
@@ -19,55 +30,87 @@
       if (!response.ok) {
         throw new Error(`Failed to fetch product: ${response.statusText}`);
       }
-      const data = await response.json();
-      product = data;
-    } catch (error) {
-      console.error("Error fetching product:", error);
-      error = error.message;
+      product = await response.json();
+      console.log("Fetched product:", product);
+    } catch (err) {
+      console.error("Error fetching product:", err);
+      error = err.message;
       product = null;
     } finally {
       isLoading = false;
+      console.log("Fetch complete. isLoading:", isLoading, "error:", error);
     }
   }
 
   onMount(() => {
-    const pathParts = window.location.pathname.split("/");
-    const productId = parseInt(pathParts[pathParts.length - 1], 10);
-    if (isNaN(productId)) {
-      console.error("Invalid product ID from URL:", window.location.pathname);
-      error = "Invalid product ID";
+    console.log("onMount triggered. productData:", productData);
+    if (productData) {
+      console.log("Processing productData:", productData);
+      product = {
+        id: productData.id,
+        name: productData.name,
+        image: productData.image,
+        description: productData.description,
+        price: productData.price,
+        category: productData.category,
+        available: productData.available,
+        originalPrice: productData.originalPrice
+      };
       isLoading = false;
+      console.log("Initialized product:", product);
+
+      if (productData.cartItemId) {
+        cartItemId = productData.cartItemId;
+        quantity = productData.quantity || 1;
+        console.log("From cart. cartItemId:", cartItemId, "quantity:", quantity);
+        if (productData.add_ons) {
+          const selectedAddOns = productData.add_ons.split(", ").filter(Boolean);
+          add_ons = add_ons.map((addon) => ({
+            ...addon,
+            selected: selectedAddOns.includes(addon.name),
+          }));
+          console.log("Processed add_ons:", add_ons);
+        } else {
+          console.log("No add_ons in productData");
+        }
+      } else {
+        console.log("Not from cart. Using default quantity and add_ons");
+      }
     } else {
-      fetchProduct(productId);
+      console.log("No productData. Falling back to URL-based product ID");
+      const pathParts = window.location.pathname.split("/");
+      const productId = parseInt(pathParts[pathParts.length - 1], 10);
+      console.log("Parsed productId from URL:", productId);
+      if (isNaN(productId)) {
+        console.error("Invalid product ID from URL:", window.location.pathname);
+        error = "Invalid product ID";
+        isLoading = false;
+        console.log("Invalid product ID. error:", error, "isLoading:", isLoading);
+      } else {
+        fetchProduct(productId);
+      }
     }
   });
 
-  let add_ons = [
-    { name: "Phô mai parmesan", price: "€2.50", selected: false },
-    { name: "Nước sốt cà chua", price: "€1.50", selected: false },
-    { name: "Nước sốt cay", price: "€1.50", selected: false },
-    { name: "Nước sốt kem", price: "€2.50", selected: false },
-  ];
-
-  let quantity = 1;
-  let isFavorite = false;
-  let cartItem = null; // Define cartItem to avoid reference error
-
   function toggleFavorite() {
     isFavorite = !isFavorite;
+    console.log("Toggled favorite. isFavorite:", isFavorite);
   }
 
   function toggleAddOn(index) {
     add_ons[index].selected = !add_ons[index].selected;
+    console.log("Toggled add-on at index", index, "add_ons:", add_ons);
   }
 
   function increaseQuantity() {
     quantity += 1;
+    console.log("Increased quantity:", quantity);
   }
 
   function decreaseQuantity() {
     if (quantity > 1) {
       quantity -= 1;
+      console.log("Decreased quantity:", quantity);
     }
   }
 
@@ -80,52 +123,62 @@
       .filter((a) => a.selected)
       .map((a) => a.name)
       .join(", ");
-    const response = await fetch(`http://localhost:8080/cart/add/${user_id}`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({
-        product_id: product.id, // snake_case
-        quantity: quantity,
-        add_ons: selectedAddOns, // snake_case
-        user_id: user_id, // snake_case
-      }),
+    console.log("Adding to cart. Payload:", {
+      product_id: product.id,
+      quantity,
+      add_ons: selectedAddOns,
+      user_id
     });
-    if (!response.ok) throw new Error("Không thể thêm vào giỏ hàng");
-    alert("Đã thêm vào giỏ hàng!");
-    onGoHome();
-  }
-  async function updateCart() {
-    const selectedAdd_ons = [];
-    add_ons.forEach((add_ons) => {
-      for (let i = 0; i < add_ons.count; i++) {
-        selectedAdd_ons.push({ name: add_ons.name, price: add_ons.price });
-      }
-    });
-
     try {
-      const response = await fetch(
-        `${baseUrl}/cart/${user.id}/${cartItem.id}`,
-        {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            quantity,
-            add_ons: selectedAdd_ons,
-          }),
-        }
-      );
+      const response = await fetch(`${baseUrl}/cart/add/${user_id}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          product_id: product.id,
+          quantity,
+          add_ons: selectedAddOns,
+          user_id,
+        }),
+      });
+      if (!response.ok) throw new Error("Không thể thêm vào giỏ hàng");
+      console.log("Add to cart successful");
+      alert("Đã thêm vào giỏ hàng!");
+      onGoHome();
+    } catch (error) {
+      console.error("Error adding to cart:", error);
+      alert("Failed to add to cart.");
+    }
+  }
 
-      if (!response.ok) {
-        throw new Error("Failed to update cart");
-      }
-
+  async function updateCart() {
+    const token = localStorage.getItem("token");
+    const selectedAddOns = add_ons
+      .filter((a) => a.selected)
+      .map((a) => a.name)
+      .join(", ");
+    console.log("Updating cart. cartItemId:", cartItemId, "Payload:", {
+      quantity,
+      add_ons: selectedAddOns
+    });
+    try {
+      const response = await fetch(`${baseUrl}/cart/updateItem/${cartItemId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          quantity,
+          add_ons: selectedAddOns,
+        }),
+      });
+      if (!response.ok) throw new Error("Failed to update cart");
+      console.log("Update cart successful");
       alert("Cart updated!");
-      window.location.href = "/";
+      onGoHome();
     } catch (error) {
       console.error("Error updating cart:", error);
       alert("Failed to update cart.");
@@ -133,7 +186,8 @@
   }
 
   function handleConfirm() {
-    if (cartItem) {
+    console.log("Handle confirm. cartItemId:", cartItemId);
+    if (cartItemId) {
       updateCart();
     } else {
       addToCart();
@@ -142,17 +196,13 @@
 </script>
 
 <div class="product-detail-page">
-  <!-- Header -->
   <header>
-    <button class="back-btn" on:click={() => history.back()}>⬅️</button>
+    <button class="back-btn" on:click={() => onGoHome()}>⬅️</button>
     <button class="favorite-btn" on:click={toggleFavorite}>
-      <span class={isFavorite ? "favorite-icon active" : "favorite-icon"}
-        >❤️</span
-      >
+      <span class={isFavorite ? "favorite-icon active" : "favorite-icon"}>❤️</span>
     </button>
   </header>
 
-  <!-- Product Image -->
   <div class="product-image">
     {#if isLoading}
       <p>Loading product image...</p>
@@ -165,7 +215,6 @@
     {/if}
   </div>
 
-  <!-- Product Info -->
   <div class="product-info">
     {#if isLoading}
       <p>Loading product details...</p>
@@ -173,9 +222,7 @@
       <p>Error: {error}</p>
     {:else if product}
       <h1>{product.name}</h1>
-      <p class="description">
-        {product.description || "No description available"}
-      </p>
+      <p class="description">{product.description || "No description available"}</p>
       <div class="price">
         <span class="current-price">{product.price || "N/A"}</span>
         {#if product.originalPrice}
@@ -187,7 +234,6 @@
     {/if}
   </div>
 
-  <!-- Add More (Add-ons) -->
   <section class="add-ons">
     <h3>Add more</h3>
     {#each add_ons as add_on, index}
@@ -205,7 +251,6 @@
     {/each}
   </section>
 
-  <!-- Quantity and Add to Order -->
   <div class="order-section">
     <div class="quantity-selector">
       <button on:click={decreaseQuantity}>-</button>
@@ -213,13 +258,12 @@
       <button on:click={increaseQuantity}>+</button>
     </div>
     <button class="add" on:click={handleConfirm}>
-      {cartItem ? "Update" : "Add to Cart"}
+      {cartItemId ? "Update" : "Add to Cart"}
     </button>
   </div>
 </div>
 
 <style>
-  /* Reset and Global Styles */
   * {
     margin: 0;
     padding: 0;
@@ -233,7 +277,6 @@
     padding: 20px;
   }
 
-  /* Header */
   header {
     display: flex;
     justify-content: space-between;
@@ -257,19 +300,19 @@
     color: #ff4d4f;
   }
 
-  /* Product Image */
   .product-image {
     margin-bottom: 20px;
+    display: flex;
+    justify-content: center;
   }
 
   .product-image img {
-    width: 100%;
+    width: 30%;
     height: 200px;
     object-fit: cover;
     border-radius: 15px;
   }
 
-  /* Product Info */
   .product-info {
     margin-bottom: 20px;
   }
@@ -304,7 +347,6 @@
     text-decoration: line-through;
   }
 
-  /* Add-ons Section */
   .add-ons {
     margin-bottom: 20px;
   }
@@ -319,7 +361,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 10px 0;
+    padding: 8px 0;
     border-bottom: 1px solid #f5f5f5;
   }
 
@@ -340,7 +382,6 @@
     color: #ff4d4f;
   }
 
-  /* Quantity and Add to Order */
   .order-section {
     display: flex;
     justify-content: space-between;
@@ -350,7 +391,8 @@
     left: 20px;
     right: 20px;
     background-color: #fff;
-    padding: 10px 0;
+    padding: 10px;
+    box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
   }
 
   .quantity-selector {
@@ -358,16 +400,15 @@
     align-items: center;
     gap: 10px;
     background-color: #f5f5f5;
-    padding: 5px 10px;
+    padding: 5px 15px;
     border-radius: 20px;
   }
 
   .quantity-selector button {
     background: none;
     border: none;
-    font-size: 20px;
+    font-size: 18px;
     cursor: pointer;
-    color: #333;
   }
 
   .quantity-selector span {
@@ -375,7 +416,7 @@
     font-weight: bold;
   }
 
-  .add-to-order-btn {
+  .add {
     background-color: #ff8c00;
     color: #fff;
     border: none;
@@ -386,12 +427,78 @@
     cursor: pointer;
   }
 
-  .add-to-order-btn:disabled {
-    background-color: #ccc;
-    cursor: not-allowed;
+  .add:hover {
+    background-color: #e67e22;
   }
 
-  .add-to-order-btn:hover:not(:disabled) {
-    background-color: #e67e22;
+  @media (max-width: 640px) {
+    .product-detail-page {
+      padding: 15px;
+    }
+
+    .product-image img {
+      width: 100%;
+      height: 150px;
+    }
+
+    .product-info h1 {
+      font-size: 20px;
+    }
+
+    .description {
+      font-size: 12px;
+    }
+
+    .current-price {
+      font-size: 18px;
+    }
+
+    .original-price {
+      font-size: 14px;
+    }
+
+    .add-ons h3 {
+      font-size: 16px;
+    }
+
+    .add-on-item label {
+      font-size: 14px;
+    }
+
+    .add-on-price {
+      font-size: 12px;
+    }
+
+    .order-section {
+      padding: 8px;
+    }
+
+    .quantity-selector span {
+      font-size: 14px;
+    }
+
+    .add {
+      font-size: 14px;
+      padding: 8px 16px;
+    }
+  }
+
+  @media (min-width: 641px) and (max-width: 1024px) {
+    .product-image img {
+      width: 50%;
+      height: 180px;
+    }
+
+    .product-info h1 {
+      font-size: 22px;
+    }
+
+    .description {
+      font-size: 13px;
+    }
+
+    .add-ons h3 {
+      font-size: 17px;
+    }
   }
 </style>
