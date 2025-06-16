@@ -1,4 +1,4 @@
-<script></script>
+<!-- <script></script>
 
 <main>
   <nav class="bottom-nav">
@@ -34,4 +34,4 @@
     font-size: 20px;
     margin-bottom: 5px;
   }
-</style>
+</style> -->
