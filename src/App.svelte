@@ -17,6 +17,9 @@
   import TrackingOrder from "./pages/Order/TrackingOrder.svelte";
   import Map from "./pages/Map/Map.svelte";
   import Home from "./pages/Home/Home.svelte";
+  import Chatbox from "./pages/Home/Chatbox.svelte";
+  import About from "./pages/Home/About.svelte";
+  import Review from "./pages/Product/Review.svelte";
   import Restaurant from "./pages/Restaurant/Restaurant.svelte";
   import AdminPage from "./Admin/AdminPage/MainAdmin.svelte";
   import Customers from "./Admin/UserManager/Customers.svelte";
@@ -26,6 +29,15 @@
   import ProductOrderDetail from "./pages/Pay/ProductOrderDetail.svelte";
   import Checkout from "./pages/Pay/Checkout.svelte";
   import Pay from "./pages/Pay/Pay.svelte";
+
+  // Admin Components
+  import MainAdmin from "./Admin/AdminPage/MainAdmin.svelte";
+  import UserManager from "./Admin/UserManager/Customers.svelte";
+  import ProductManager from "./Admin/ProductManager/ProductManager.svelte";
+  import OrderManager from "./Admin/OrderManager/OrderManager.svelte";
+  import Contact from "./pages/Home/Contact.svelte";
+
+  export let url = "";
 
   function onLoginSuccess() {
     router.goto("/home");
@@ -76,19 +88,22 @@
 >
 <Route path="/register"><Register {onSignUp} {onSend} /></Route>
 <Route path="/newPass"><NewPassword {onSend} /></Route>
-<Route path="/validate"><Verificate {onSignUp} {onSend}/></Route>
-<Route path="/home"
-  ><Home {onLogout} {onProductDetail} {onPayment} /></Route
->
-<Route path="/order"><Order {onTrackingOrder}/></Route>
+<Route path="/validate"><Verificate {onSignUp} {onSend} /></Route>
+<Route path="/home"><Home {onLogout} {onProductDetail} {onPayment} /></Route>
+<Route path="/chatbox"><Chatbox /></Route>
+<Route path="/about"><About /></Route>
+<Route path="/order"><Order {onTrackingOrder} /></Route>
 <Route path="/tracking-order/:id">
   <TrackingOrder />
 </Route>
 <Route path="/restaurant"><Restaurant /></Route>
 <Route path="/search"><Search /></Route>
 <Route path="/favorite"><Favorite /></Route>
-<Route path="/profile"><Profile {onOrder} /></Route>
+<Route path="/profile"><Profile {onOrder} {onProductDetail} /></Route>
 <Route path="/my-profile"><MyProfile /></Route>
+<Route path="/review/:id">
+  <Review {onProductDetail} />
+</Route>
 <Route path="/product"><Product /></Route>
 <Route path="/product/:id">
   <ProductDetail {onGoHome} />
@@ -97,13 +112,16 @@
   <Category />
 </Route>
 <Route path="map"><Map /></Route>
-<Route path="/admin" let:params>
-  <AdminPage />
-  <Route path="customers"><Customers /></Route>
-  <Route path="orders"><Orders /></Route>
-  <Route path="drivers"><Drivers /></Route>
-  <Route path="analytics"><Analytics /></Route>
-</Route>
+
+<!-- Admin routes -->
+<Route path="/admin"><MainAdmin /></Route>
+<Route path="/admin/users"><UserManager /></Route>
+<Route path="/admin/products"><ProductManager /></Route>
+<Route path="/admin/orders"><OrderManager /></Route>
+<Route path="/admin/analytics"><Analytics /></Route>
+<Route path="/admin/drivers"><Drivers /></Route>
+<Route path="/admin/restaurants"><Restaurant /></Route>
+<Route path="/contact"><Contact /></Route>
 
 <Route path="/pay">
   <Pay />

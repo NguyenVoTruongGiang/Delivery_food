@@ -5,10 +5,13 @@
   import { onMount, onDestroy } from "svelte";
   import SlideBarHome from "./SlideBarHome.svelte";
   import Category from "../Product/Category.svelte";
+  import Chatbox from "./Chatbox.svelte";
 
   let nameRes = "Delivery Food";
   let user = JSON.parse(localStorage.getItem("user"));
   console.log(user?.name);
+  let profile = localStorage.getItem("user");
+  console.log("Profile:", profile);
 
   if (!user) {
     window.location.href = "/login";
@@ -32,44 +35,25 @@
     },
   ];
 
+  let currentTime = new Date().toLocaleTimeString();
   let products = [];
   let carts = [];
   let cart_Id = user?.cart_id || 0;
   let searchTerm = "";
   let searchResults = [];
-  let searchKeywords = [
-    "burger",
-    "vegetarian",
-    "healthy",
-    "fast food",
-    "salad",
-    "snacks",
-    "sandwich",
-    "sushi",
-    "pizza",
-    "kebab",
-    "thai",
-    "lunch",
-    "wings",
-    "desserts",
-  ];
 
-  $: totalCartPrice = carts
-    .reduce((sum, item) => {
-      let price = 0;
-      if (item.product && item.product.price) {
-        price = parseFloat((item.product.price + "").replace(/[^\d.]/g, ""));
-      } else {
-        const product = products.find(
-          (p) => p.id === (item.product_id || item.productId)
-        );
-        price = product
-          ? parseFloat((product.price + "").replace(/[^\d.]/g, ""))
-          : 0;
-      }
-      return sum + price * item.quantity;
-    }, 0)
-    .toFixed(2);
+  $: totalCartPrice = carts.reduce((sum, item) => {
+    let price = 0;
+    if (item.product && item.product.price) {
+      price = parseInt(item.product.price + "");
+    } else {
+      const product = products.find(
+        (p) => p.id === (item.product_id || item.productId)
+      );
+      price = product ? parseInt(product.price + "") : 0;
+    }
+    return sum + price * item.quantity * 10000;
+  }, 0);
 
   let currentBannerIndex = 0;
   let intervalId;
@@ -175,10 +159,13 @@
         carts = await Promise.all(
           (data.cartItems || []).map(async (item) => {
             if (!item.product && item.product_id) {
-              const productResponse = await fetch(`${baseUrl}/products/${item.product_id}`, {
-                method: "GET",
-                headers: { "Content-Type": "application/json" }
-              });
+              const productResponse = await fetch(
+                `${baseUrl}/products/${item.product_id}`,
+                {
+                  method: "GET",
+                  headers: { "Content-Type": "application/json" },
+                }
+              );
               item.product = await productResponse.json();
             }
             return item;
@@ -260,9 +247,12 @@
       ...cartItem.product,
       cartItemId: cartItem.id,
       quantity: cartItem.quantity,
-      add_ons: cartItem.add_ons
+      add_ons: cartItem.add_ons,
     };
-    console.log("Navigating to product detail from cart with data:", productData);
+    console.log(
+      "Navigating to product detail from cart with data:",
+      productData
+    );
     onProductDetail(productData);
   }
 
@@ -297,6 +287,7 @@
 
   function handleLogout() {
     localStorage.removeItem("user");
+    localStorage.clear();
     onLogout();
   }
 
@@ -305,6 +296,11 @@
     intervalId = setInterval(() => {
       currentBannerIndex = (currentBannerIndex + 1) % banners.length;
     }, 1500);
+
+    let localTime = setInterval(() => {
+      currentTime = new Date().toLocaleTimeString();
+    }, 1000);
+    return () => clearInterval(localTime);
   });
 
   onDestroy(() => {
@@ -319,6 +315,8 @@
     <!-- Header -->
     <header>
       <div class="logo">
+        <div class="time">{currentTime}</div>
+        <br />
         <a href="/" class="brand">{nameRes}</a>
       </div>
       <div class="search-bar">
@@ -338,8 +336,6 @@
       <nav class="nav-links" class:open={isMenuOpen}>
         <a href="/home" on:click={toggleMenu}>Home</a>
         <a href="/about" on:click={toggleMenu}>About</a>
-        <a href="/product" on:click={toggleMenu}>Menu</a>
-        <a href="/contact" on:click={toggleMenu}>Contact</a>
         <a href="/order" on:click={toggleMenu}>Orders</a>
       </nav>
       <div class="user-info">
@@ -380,7 +376,7 @@
                       >
                     </div>
                     <p class="cart-item-price">
-                      €{(item.product.price * item.quantity).toFixed(2)}
+                      {item.product.price * item.quantity * 10000} đ
                     </p>
                     <button
                       class="delete-btn"
@@ -392,7 +388,7 @@
                 </div>
               {/each}
               <div class="cart-total">
-                <p>Total: {totalCartPrice} $</p>
+                <p>Tổng: {totalCartPrice} đ</p>
                 <button class="payment" on:click={handlePayment}
                   >Thanh toán</button
                 >
@@ -405,12 +401,14 @@
       </div>
     </header>
 
+    <Chatbox />
+
     <!-- Categories -->
-    <Category
+    <!-- <Category
       {categories}
       {selectedCategory}
       on:categorySelect={filterByCategory}
-    />
+    /> -->
 
     <!-- Search Results -->
     {#if searchResults.length > 0}
@@ -427,7 +425,7 @@
             <img src={result.image} alt={result.name} />
             <div class="result-info">
               <h4>{result.name}</h4>
-              <p>€{result.price}</p>
+              <p>{result.price * 10000} đ</p>
             </div>
           </div>
         {/each}
@@ -502,7 +500,7 @@
                 <h4>{product.name}</h4>
                 <p>{product.description}</p>
                 <div class="details">
-                  <span class="price">€{product.price}</span>
+                  <span class="price">{product.price * 10000} đ</span>
                   <span class="category">{product.category}</span>
                   <span class="available"
                     >{product.available ? "Available" : "Out of stock"}</span
@@ -545,7 +543,7 @@
               <img src={product.image} alt={product.name} />
               <div class="item-info">
                 <h4>{product.name}</h4>
-                <p>€{product.price}</p>
+                <p>{product.price * 10000} đ</p>
               </div>
             </div>
           {/each}

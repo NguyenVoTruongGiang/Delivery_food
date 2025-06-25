@@ -1,5 +1,8 @@
 <script>
+  import { onMount } from "svelte";
+
   export let onLoginSuccess;
+  export let onLoginAdmin;
   let email = "";
   let password = "";
   let url = "http://localhost:8080/user/login"; // Đổi sang endpoint của Spring Boot
@@ -25,11 +28,87 @@
       localStorage.setItem("user", JSON.stringify(data.user || data)); // Lưu thông tin người dùng vào localStorage
       localStorage.setItem("token", data.token);
       localStorage.setItem("user_id", data.user_id);
-      onLoginSuccess();
+      if (data.user_id == 2) {
+        onLoginAdmin();
+      } else {
+        onLoginSuccess();
+      }
     } catch (error) {
       console.error("Đăng nhập thất bại:", error.message);
     }
   }
+
+  async function handleGoogleLogin() {
+  try {
+    window.location.href = 'http://localhost:8080/oauth2/authorization/google';
+    
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has('code')) {
+      console.log("Phát hiện code OAuth, đang xử lý...");
+      
+      const response = await fetch(`${url}/success`, {
+        method: 'GET',
+        headers: { 
+          'Content-Type': 'application/json' 
+        },
+        credentials: 'include',
+      });
+      
+      if (!response.ok) throw new Error('Google login failed');
+      
+      const data = await response.json();
+      console.log('Google login successful:', data);
+      
+      localStorage.setItem('user', JSON.stringify(data.user || data));
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('user_id', data.user_id);
+      
+      if (data.user_id == 2) {
+        onLoginAdmin();
+      } else {
+        onLoginSuccess();
+      }
+    }
+  } catch (error) {
+    console.error("Google login error:", error.message);
+  }
+}
+
+async function handleFacebookLogin() {
+  try {
+    window.location.href = 'http://localhost:8080/oauth2/authorization/facebook';
+    
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has('code')) {
+      console.log("Phát hiện code OAuth, đang xử lý...");
+      
+      const response = await fetch(`${url}/success`, {
+        method: 'GET',
+        headers: { 
+          'Content-Type': 'application/json' 
+        },
+        credentials: 'include',
+      });
+      
+      if (!response.ok) throw new Error('Facebook login failed');
+      
+      const data = await response.json();
+      console.log('Facebook login successful:', data);
+      
+      localStorage.setItem('user', JSON.stringify(data.user || data));
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('user_id', data.user_id);
+      
+      if (data.user_id == 2) {
+        onLoginAdmin();
+      } else {
+        onLoginSuccess();
+      }
+    }
+  } catch (error) {
+    console.error("Facebook login error:", error.message);
+  }
+}
 </script>
 
 <div class="container">
@@ -38,10 +117,10 @@
     
     <form on:submit|preventDefault={handleLogin}>
       <p>Email</p>
-      <input type="email" bind:value={email} placeholder="Your email" />
+      <input type="email" bind:value={email} placeholder="Your email" required/>
 
       <p>Password</p>
-      <input type="password" bind:value={password} placeholder="Password" />
+      <input type="password" bind:value={password} placeholder="Password" required/>
 
       <div class="forgot-password">
         <a href="/newPass">Forgot password?</a>
@@ -57,12 +136,12 @@
 
     <div class="divider">Or sign in with</div>
 
-    <button class="btn-social facebook">
+    <button class="btn-social facebook" on:click={handleFacebookLogin}>
       <img src="https://cdn-icons-png.flaticon.com/512/124/124010.png" alt="Facebook" />
       Continue with Facebook
     </button>
 
-    <button class="btn-social google">
+    <button class="btn-social google"  on:click={handleGoogleLogin}>
       <img src="https://ssl.gstatic.com/images/branding/product/2x/gsa_512dp.png" alt="Google" />
       Continue with Google
     </button>

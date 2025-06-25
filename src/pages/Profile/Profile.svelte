@@ -1,11 +1,9 @@
 <!-- src/Profile.svelte -->
 <script>
+  import { onMount } from "svelte";
   export let onLogout;
   import SlideBarHome from "../Home/SlideBarHome.svelte";
   const baseUrl = "http://localhost:8080";
-
-  const user_id = Number(localStorage.getItem("user_id"));
-  const token = localStorage.getItem("token");
 
   let user = JSON.parse(localStorage.getItem("user")); // Lấy thông tin người dùng từ localStorage
   console.log(user?.name);
@@ -14,35 +12,6 @@
     // Chưa login thì chuyển hướng
     window.location.href = "/login";
   }
-
-  // async function fetchUser() {
-  //   try {
-  //     const response = await fetch(`${baseUrl}/user/${user_id}`, {
-  //       headers: {
-  //         "Content-Type": "application/json",
-  //         Authorization: `Bearer ${token}`,
-  //       },
-  //     });
-
-  //     if (!response.ok) {
-  //       throw new Error("Failed to fetch user data");
-  //     }
-
-  //     return await response.json();
-  //   } catch (error) {
-  //     console.error("Error fetching user data:", error);
-  //     return null;
-  //   }
-  // }
-
-  // let menuItems = [
-  //   { name: "My Profile", icon: "👤" },
-  //   { name: "My Orders", icon: "📦" },
-  //   { name: "Delivery Address", icon: "📍" },
-  //   { name: "Payment Methods", icon: "💳" },
-  //   { name: "Contact Us", icon: "📞" },
-  //   { name: "Help & FAQ", icon: "❓" },
-  // ];
 
   function logout() {
     onLogout();
@@ -78,19 +47,19 @@
         </a>
       </div>
       <div class="menu-item">
-        <a href="/payment-methods">
-          <span class="icon">💳</span>
-          <span>Payment Methods</span>
+        <a href="/favorite">
+          <span class="icon">❤️</span>
+          <span>My-favorite</span>
         </a>
       </div>
       <div class="menu-item">
-        <a href="/contact-us">
+        <a href="/contact">
           <span class="icon">📞</span>
           <span>Contact Us</span>
         </a>
       </div>
       <div class="menu-item">
-        <a href="/help-faq">
+        <a href="/contact">
           <span class="icon">❓</span>
           <span>Help & FAQ</span>
         </a>
