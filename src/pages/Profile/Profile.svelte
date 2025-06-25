@@ -47,9 +47,9 @@
         </a>
       </div>
       <div class="menu-item">
-        <a href="/payment-methods">
-          <span class="icon">💳</span>
-          <span>Payment Methods</span>
+        <a href="/favorite">
+          <span class="icon">❤️</span>
+          <span>My-favorite</span>
         </a>
       </div>
       <div class="menu-item">

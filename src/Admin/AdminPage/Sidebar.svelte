@@ -3,10 +3,10 @@
   export let activePage;
   
   const menuItems = [
-    { name: "Dashboard", icon: "dashboard", path: "/admin" },
-    { name: "Users", icon: "people", path: "/admin/users" },
-    { name: "Products", icon: "restaurant_menu", path: "/admin/products" },
-    { name: "Orders", icon: "receipt", path: "/admin/orders" }
+    { name: "Dashboard", icon: "", path: "/admin" },
+    { name: "Users", icon: "", path: "/admin/users" },
+    { name: "Products", icon: "", path: "/admin/products" },
+    { name: "Orders", icon: "", path: "/admin/orders" }
   ];
   
   function navigateTo(path) {
@@ -37,8 +37,7 @@
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       window.location.href = '/login';
-    }}>
-      <span class="material-icons">exit_to_app</span>
+    }} style="display: flex; align-items: center;justify-content: center;">
       Logout
     </button>
   </div>

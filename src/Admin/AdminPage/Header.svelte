@@ -12,10 +12,10 @@
 <header>
   <div class="date">{currentDate}</div>
   <div class="profile">
-    <span class="greeting">Welcome back, {adminName}</span>
-    <div class="avatar">
+    <span class="greeting">{adminName}</span>
+    <!-- <div class="avatar">
       <span class="material-icons">account_circle</span>
-    </div>
+    </div> -->
   </div>
 </header>
 
@@ -42,6 +42,7 @@
   }
   
   .greeting {
+    padding: 10px;
     font-size: 14px;
   }
   

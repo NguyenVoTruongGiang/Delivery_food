@@ -1,46 +1,58 @@
 <script>
   import Sidebar from "../AdminPage/Sidebar.svelte";
   import Header from "../AdminPage/Header.svelte";
-  import { onMount } from 'svelte';
-  
-  let adminName = "Admin";
+  import { onMount } from "svelte";
+
+  let adminName = localStorage.getItem("user.name") || "Admin";
   let products = [];
   let categories = [];
   let loading = true;
   let error = null;
-  
-  // Form for adding/editing product
-  let editingProduct = null;
-  let formData = {
-    name: "",
-    price: 0,
-    description: "",
-    category: "",
-    image_url: "",
-    restaurant_id: 1
-  };
-  
-  let showForm = false;
-  
+  let showDetailsModal = false;
+  let showEditModal = false;
+  let showAddModal = false;
+  let selectedProduct = null;
+  let formData = { name: "", image: "", price: 0, category: "", description: "", available: true };
+  let formLoading = false;
+  let formError = null;
+
   onMount(async () => {
-    await Promise.all([
-      fetchProducts(),
-      fetchCategories()
-    ]);
+    await Promise.all([fetchProducts(), fetchCategories()]);
   });
-  
+
   async function fetchProducts() {
     loading = true;
     error = null;
     try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        error = "Authentication required. Please log in.";
+        window.location.href = "/login";
+        return;
+      }
+
       const response = await fetch("http://localhost:8080/api/admin/products", {
+        method: "GET",
         headers: {
-          "Authorization": `Bearer ${localStorage.getItem("token")}`
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+    });
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          error = "Session expired. Redirecting to login...";
+          setTimeout(() => (window.location.href = "/login"), 2000);
+          return;
         }
-      });
-      
-      if (!response.ok) throw new Error("Failed to fetch products");
-      products = await response.json();
+        const errorText = await response.text();
+        console.error(`Server error (${response.status}):`, errorText);
+        throw new Error(`Failed to fetch products: ${response.status} ${errorText || response.statusText}`);
+      }
+
+      const data = await response.json();
+      products = Array.isArray(data) ? data : data.data || [];
+      console.log("Products fetched:", products);
     } catch (err) {
       console.error("Error fetching products:", err);
       error = err.message;
@@ -48,112 +60,112 @@
       loading = false;
     }
   }
-  
+
   async function fetchCategories() {
     try {
-      const response = await fetch("http://localhost:8080/categories");
-      if (!response.ok) throw new Error("Failed to fetch categories");
+      const token = localStorage.getItem("token");
+      const response = await fetch("http://localhost:8080/api/admin/products/categories", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+    });
+
+      if (!response.ok) {
+        console.error("Failed to fetch categories:", response.status);
+        return;
+      }
       categories = await response.json();
+      if (categories.length > 0 && !formData.category) {
+        formData.category = categories[0]; // Default to first category
+      }
+      console.log("Categories fetched:", categories);
     } catch (err) {
       console.error("Error fetching categories:", err);
-      categories = [];
     }
   }
-  
-  function addNewProduct() {
-    editingProduct = null;
-    formData = {
-      name: "",
-      price: 0,
-      description: "",
-      category: categories.length > 0 ? categories[0].name : "",
-      image_url: "",
-      restaurant_id: 1
-    };
-    showForm = true;
+
+  function openDetails(product) {
+    selectedProduct = product;
+    showDetailsModal = true;
   }
-  
-  function editProduct(product) {
-    editingProduct = product;
+
+  function openEdit(product) {
+    selectedProduct = product;
     formData = {
       name: product.name || "",
+      image: product.image || "",
       price: product.price || 0,
+      category: product.category || categories[0] || "",
       description: product.description || "",
-      category: product.category || "",
-      image_url: product.image_url || "",
-      restaurant_id: product.restaurant_id || 1
+      available: product.available ?? true,
     };
-    showForm = true;
+    showEditModal = true;
   }
-  
-  async function deleteProduct(id) {
-    if (!confirm("Are you sure you want to delete this product?")) return;
-    
-    try {
-      const response = await fetch(`http://localhost:8080/api/admin/products/${id}`, {
-        method: "DELETE",
-        headers: {
-          "Authorization": `Bearer ${localStorage.getItem("token")}`
-        }
-      });
-      
-      if (!response.ok) throw new Error("Failed to delete product");
-      
-      // Remove product from list
-      products = products.filter(p => p.id !== id);
-      alert("Product deleted successfully");
-    } catch (err) {
-      console.error("Error deleting product:", err);
-      alert(`Failed to delete product: ${err.message}`);
-    }
+
+  function openAdd() {
+    formData = { name: "", image: "", price: 0, category: categories[0] || "", description: "", available: true };
+    showAddModal = true;
   }
-  
-  async function saveProduct() {
+
+  function closeModals() {
+    showDetailsModal = false;
+    showEditModal = false;
+    showAddModal = false;
+    selectedProduct = null;
+    formError = null;
+  }
+
+  async function saveProduct(isAdd = false) {
+    formLoading = true;
+    formError = null;
     try {
-      // Ensure price is a number
-      formData.price = Number(formData.price);
-      
-      const url = editingProduct 
-        ? `http://localhost:8080/api/admin/products/${editingProduct.id}` 
-        : "http://localhost:8080/api/admin/products";
-      
-      const method = editingProduct ? "PUT" : "POST";
-      
+      const token = localStorage.getItem("token");
+      if (!token) {
+        formError = "Authentication required. Please log in.";
+        window.location.href = "/login";
+        return;
+      }
+
+      const url = isAdd
+        ? "http://localhost:8080/api/admin/products/addProduct"
+        : `http://localhost:8080/api/admin/products/${selectedProduct.id}`;
+      const method = isAdd ? "POST" : "PUT";
+
       const response = await fetch(url, {
         method,
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${localStorage.getItem("token")}`
+          Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(formData)
+        body: JSON.stringify({
+          ...formData,
+          price: Number(formData.price),
+        }),
       });
-      
-      if (!response.ok) throw new Error("Failed to save product");
-      
-      const savedProduct = await response.json();
-      
-      if (editingProduct) {
-        // Update existing product in the list
-        products = products.map(p => p.id === savedProduct.id ? savedProduct : p);
-      } else {
-        // Add new product to the list
-        products = [...products, savedProduct];
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          formError = "Session expired. Redirecting to login...";
+          setTimeout(() => (window.location.href = "/login"), 20000);
+          return;
+        }
+        const errorText = await response.text();
+        console.error(`Server error (${response.status}):`, errorText);
+        throw new Error(`Failed to ${isAdd ? "add" : "update"} product: ${response.status} ${errorText || response.statusText}`);
       }
-      
-      showForm = false;
-      alert(editingProduct ? "Product updated successfully" : "Product created successfully");
+
+      const updatedProduct = await response.json();
+      await fetchProducts(); // Reload products via AJAX
+      console.log(`Product ${isAdd ? "added" : "updated"}:`, updatedProduct);
+      closeModals();
     } catch (err) {
-      console.error("Error saving product:", err);
-      alert(`Failed to save product: ${err.message}`);
+      console.error(`Error ${isAdd ? "adding" : "updating"} product:`, err);
+      formError = err.message;
+    } finally {
+      formLoading = false;
     }
-  }
-  
-  function cancelEdit() {
-    showForm = false;
-  }
-  
-  function formatPrice(price) {
-    return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
   }
 </script>
 
@@ -162,86 +174,152 @@
   <div class="main-content">
     <Header {adminName} />
     <div class="product-manager">
-      <div class="header-actions">
+      <div class="header">
         <h1>Product Management</h1>
-        <button class="add-button" on:click={addNewProduct}>
-          <span class="material-icons">add</span> Add New Product
+        <button class="add-button" on:click={openAdd}>
+          <span class="icon">＋</span> Add Product
         </button>
       </div>
-      
+
       {#if loading}
-        <div class="loading">Loading products...</div>
-      {:else if error}
-        <div class="error">Error: {error}</div>
-      {:else}
-        <div class="product-grid">
-          {#each products as product}
-            <div class="product-card">
-              <div class="product-image">
-                {#if product.image_url}
-                  <img src={product.image_url} alt={product.name} />
-                {:else}
-                  <div class="no-image">No Image</div>
-                {/if}
-              </div>
-              <div class="product-info">
-                <h3>{product.name}</h3>
-                <p class="price">{formatPrice(product.price)}</p>
-                <p class="category">{product.category || 'No Category'}</p>
-                <p class="description">{product.description || 'No description'}</p>
-              </div>
-              <div class="product-actions">
-                <button class="icon-button edit" on:click={() => editProduct(product)}>
-                  <span class="material-icons">edit</span>
-                </button>
-                <button class="icon-button delete" on:click={() => deleteProduct(product.id)}>
-                  <span class="material-icons">delete</span>
-                </button>
-              </div>
-            </div>
-          {/each}
+        <div class="loading">
+          <div class="spinner"></div>
+          Loading products...
         </div>
+      {:else if error}
+        <div class="error">
+          <span>{error}</span>
+          <button on:click={fetchProducts}>Retry</button>
+        </div>
+      {:else if products.length > 0}
+        <div class="product-table">
+          <table>
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Price</th>
+                <th>Category</th>
+                <th>Description</th>
+                <th>Available</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {#each products as product}
+                <tr>
+                  <td>{product.name}</td>
+                  <td>€{product.price.toFixed(2)}</td>
+                  <td>{product.category || "N/A"}</td>
+                  <td class="description-cell">{product.description || "N/A"}</td>
+                  <td>
+                    <span class={product.available ? "available" : "unavailable"}>
+                      {product.available ? "Yes" : "No"}
+                    </span>
+                  </td>
+                  <td class="action-cell">
+                    <button class="action-button details" on:click={() => openDetails(product)}>
+                      Details
+                    </button>
+                    <button class="action-button edit" on:click={() => openEdit(product)}>
+                      Edit
+                    </button>
+                  </td>
+                </tr>
+              {/each}
+            </tbody>
+          </table>
+        </div>
+      {:else}
+        <div class="empty">No products found.</div>
       {/if}
-      
-      {#if showForm}
+
+      {#if showDetailsModal && selectedProduct}
         <div class="modal">
           <div class="modal-content">
-            <span class="close" on:click={cancelEdit}>&times;</span>
-            <h2>{editingProduct ? 'Edit Product' : 'Add New Product'}</h2>
-            
-            <form on:submit|preventDefault={saveProduct}>
-              <div class="form-group">
-                <label for="name">Product Name</label>
-                <input type="text" id="name" bind:value={formData.name} required>
+            <button class="close-button" on:click={closeModals}>×</button>
+            <h2>Product Details</h2>
+            <div class="detail-group">
+              <label>Name:</label>
+              <span>{selectedProduct.name}</span>
+            </div>
+            {#if selectedProduct.image}
+              <div class="detail-group">
+                <label>Image:</label>
+                <img src={selectedProduct.image} alt={selectedProduct.name} class="detail-image" />
               </div>
-              
+            {/if}
+            <div class="detail-group">
+              <label>Price:</label>
+              <span>€{selectedProduct.price.toFixed(2)}</span>
+            </div>
+            <div class="detail-group">
+              <label>Category:</label>
+              <span>{selectedProduct.category || "N/A"}</span>
+            </div>
+            <div class="detail-group">
+              <label>Description:</label>
+              <span>{selectedProduct.description || "N/A"}</span>
+            </div>
+            <div class="detail-group">
+              <label>Available:</label>
+              <span>{selectedProduct.available ? "Yes" : "No"}</span>
+            </div>
+            <div class="modal-actions">
+              <button class="action-button secondary" on:click={closeModals}>Close</button>
+            </div>
+          </div>
+        </div>
+      {/if}
+
+      {#if (showEditModal || showAddModal) && (selectedProduct || showAddModal)}
+        <div class="modal">
+          <div class="modal-content">
+            <button class="close-button" on:click={closeModals}>×</button>
+            <h2>{showAddModal ? "Add Product" : "Edit Product"}</h2>
+            <form on:submit|preventDefault={() => saveProduct(showAddModal)}>
               <div class="form-group">
-                <label for="price">Price (VND)</label>
-                <input type="number" id="price" bind:value={formData.price} min="0" required>
+                <label for="name">Name</label>
+                <input id="name" type="text" bind:value={formData.name} required />
               </div>
-              
               <div class="form-group">
-                <label for="description">Description</label>
-                <textarea id="description" bind:value={formData.description} rows="3"></textarea>
+                <label for="image">Image URL</label>
+                <input id="image" type="text" bind:value={formData.image} />
               </div>
-              
+              <div class="form-group">
+                <label for="price">Price (€)</label>
+                <input id="price" type="number" min="0" step="0.01" bind:value={formData.price} required />
+              </div>
               <div class="form-group">
                 <label for="category">Category</label>
-                <select id="category" bind:value={formData.category}>
+                <select id="category" bind:value={formData.category} required>
                   {#each categories as category}
-                    <option value={category.name}>{category.name}</option>
+                    <option value={category}>{category}</option>
                   {/each}
                 </select>
               </div>
-              
               <div class="form-group">
-                <label for="image_url">Image URL</label>
-                <input type="text" id="image_url" bind:value={formData.image_url}>
+                <label for="description">Description</label>
+                <textarea id="description" bind:value={formData.description} rows="4" />
               </div>
-              
-              <div class="form-actions">
-                <button type="button" class="cancel-button" on:click={cancelEdit}>Cancel</button>
-                <button type="submit" class="save-button">Save</button>
+              <div class="form-group">
+                <label for="available">Available</label>
+                <input id="available" type="checkbox" bind:checked={formData.available} />
+              </div>
+              {#if formError}
+                <div class="error">{formError}</div>
+              {/if}
+              <div class="modal-actions">
+                <button type="button" class="action-button secondary" on:click={closeModals} disabled={formLoading}>
+                  Cancel
+                </button>
+                <button type="submit" class="action-button primary" disabled={formLoading}>
+                  {#if formLoading}
+                    <div class="spinner small"></div>
+                    Saving...
+                  {:else}
+                    {showAddModal ? "Create" : "Save"}
+                  {/if}
+                </button>
               </div>
             </form>
           </div>
@@ -252,229 +330,453 @@
 </div>
 
 <style>
+  :global(body) {
+    margin: 0;
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background-color: #f4f6f9;
+  }
+
   .app {
     display: flex;
-    height: 100vh;
+    min-height: 100vh;
   }
-  
+
   .main-content {
     flex: 1;
+    padding: 24px;
     overflow-y: auto;
-    padding: 20px;
-    background-color: #f9f9f9;
+    background-color: #f4f6f9;
   }
-  
+
   .product-manager {
-    max-width: 1200px;
+    max-width: 1280px;
     margin: 0 auto;
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    padding: 24px;
   }
-  
-  .header-actions {
+
+  .header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 20px;
+    margin-bottom: 24px;
   }
-  
+
   h1 {
-    font-size: 24px;
+    font-size: 28px;
+    font-weight: 700;
+    color: #1f2a44;
     margin: 0;
   }
-  
+
   .add-button {
     display: flex;
     align-items: center;
-    background-color: #27ae60;
-    color: white;
+    gap: 8px;
+    padding: 10px 20px;
+    background: #30866f;
+    color: #ffffff;
     border: none;
-    border-radius: 5px;
-    padding: 8px 15px;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.3s ease;
+  }
+
+  .add-button:hover {
+    background: #e02424;
+  }
+
+  .add-button .icon {
+    font-size: 20px;
+  }
+
+  .loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 48px;
+    font-size: 18px;
+    font-weight: 500;
+    color: #6b7280;
+  }
+
+  .spinner {
+    width: 28px;
+    height: 28px;
+    border: 4px solid #ff4d4f;
+    border-top: 4px solid transparent;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+
+  .spinner.small {
+    width: 20px;
+    height: 20px;
+    border-width: 3px;
+    margin-right: 8px;
+    display: inline-block;
+    vertical-align: middle;
+  }
+
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  .error {
+    text-align: center;
+    padding: 48px;
+    font-size: 18px;
+    font-weight: 500;
+    color: #dc2626;
+    background: #fef2f2;
+    border-radius: 8px;
+  }
+
+  .error button {
+    margin-top: 16px;
+    padding: 10px 24px;
+    background: #ff4d4f;
+    color: #ffffff;
+    border: none;
+    border-radius: 8px;
     cursor: pointer;
     font-size: 16px;
+    font-weight: 600;
+    transition: background 0.3s ease;
   }
-  
-  .add-button .material-icons {
-    margin-right: 5px;
+
+  .error button:hover {
+    background: #e02424;
   }
-  
-  .loading, .error {
-    padding: 20px;
+
+  .empty {
     text-align: center;
-  }
-  
-  .error {
-    color: #e74c3c;
-  }
-  
-  .product-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 20px;
-  }
-  
-  .product-card {
-    background-color: #fff;
-    border-radius: 10px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-  }
-  
-  .product-image {
-    height: 200px;
-    overflow: hidden;
-    position: relative;
-  }
-  
-  .product-image img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-  
-  .no-image {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    height: 100%;
-    background-color: #ecf0f1;
-    color: #7f8c8d;
-  }
-  
-  .product-info {
-    padding: 15px;
-    flex: 1;
-  }
-  
-  .product-info h3 {
-    margin: 0 0 10px 0;
+    padding: 48px;
     font-size: 18px;
+    font-weight: 500;
+    color: #6b7280;
+    background: #f9fafb;
+    border-radius: 8px;
   }
-  
-  .price {
-    font-weight: bold;
-    color: #e74c3c;
-    margin: 5px 0;
+
+  .product-table {
+    overflow-x: auto;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
   }
-  
-  .category {
-    color: #7f8c8d;
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #ffffff;
+  }
+
+  thead {
+    background: #f9fafb;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+  }
+
+  th {
+    padding: 16px;
+    text-align: left;
     font-size: 14px;
-    margin: 5px 0;
+    font-weight: 600;
+    color: #374151;
+    text-transform: uppercase;
+    border-bottom: 2px solid #e5e7eb;
   }
-  
-  .description {
-    margin: 10px 0;
+
+  td {
+    padding: 16px;
     font-size: 14px;
-    color: #34495e;
-    display: -webkit-box;
-    -webkit-line-clamp: 3;
-    -webkit-box-orient: vertical;
+    color: #1f2a44;
+    border-bottom: 1px solid #f3f4f6;
+  }
+
+  .description-cell {
+    max-width: 300px;
+    white-space: nowrap;
     overflow: hidden;
+    text-overflow: ellipsis;
   }
-  
-  .product-actions {
+
+  .action-cell {
     display: flex;
-    justify-content: flex-end;
-    padding: 10px 15px;
-    background-color: #f9f9f9;
-    gap: 10px;
+    gap: 8px;
   }
-  
-  .icon-button {
-    background: none;
+
+  .action-button {
+    padding: 8px 16px;
     border: none;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
     cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 5px;
-    border-radius: 50%;
+    transition: background 0.3s ease;
   }
-  
-  .edit {
-    color: #3498db;
+
+  .action-button.details {
+    background: #3b82f6;
+    color: #ffffff;
   }
-  
-  .delete {
-    color: #e74c3c;
+
+  .action-button.details:hover {
+    background: #2563eb;
   }
-  
+
+  .action-button.edit {
+    background: #10b981;
+    color: #ffffff;
+  }
+
+  .action-button.edit:hover {
+    background: #059669;
+  }
+
+  .available {
+    color: #22c55e;
+    font-weight: 600;
+  }
+
+  .unavailable {
+    color: #ef4444;
+    font-weight: 600;
+  }
+
+  tr:hover {
+    background: #f9fafb;
+    transition: background 0.2s ease;
+  }
+
   .modal {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
+    background: rgba(0, 0, 0, 0.5);
     display: flex;
     align-items: center;
     justify-content: center;
     z-index: 1000;
   }
-  
+
   .modal-content {
-    background-color: #fff;
-    padding: 20px;
-    border-radius: 10px;
-    width: 500px;
-    max-width: 90%;
-    position: relative;
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 24px;
+    max-width: 500px;
+    width: 90%;
     max-height: 90vh;
     overflow-y: auto;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    position: relative;
   }
-  
-  .close {
+
+  .close-button {
     position: absolute;
-    top: 10px;
-    right: 15px;
+    top: 16px;
+    right: 16px;
+    background: none;
+    border: none;
     font-size: 24px;
+    color: #6b7280;
     cursor: pointer;
+    transition: color 0.3s ease;
   }
-  
-  form {
-    margin-top: 20px;
+
+  .close-button:hover {
+    color: #1f2a44;
   }
-  
+
+  h2 {
+    font-size: 24px;
+    font-weight: 700;
+    color: #1f2a44;
+    margin-bottom: 16px;
+  }
+
+  .detail-group {
+    margin-bottom: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .detail-group label {
+    font-size: 14px;
+    font-weight: 600;
+    color: #374151;
+  }
+
+  .detail-group span {
+    font-size: 14px;
+    color: #1f2a44;
+  }
+
+  .detail-image {
+    width: 100%;
+    max-width: 200px;
+    height: auto;
+    border-radius: 8px;
+    margin-top: 8px;
+  }
+
   .form-group {
-    margin-bottom: 15px;
+    margin-bottom: 16px;
   }
-  
-  label {
+
+  .form-group label {
     display: block;
-    margin-bottom: 5px;
-    font-weight: bold;
+    font-size: 14px;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 8px;
   }
-  
-  input, select, textarea {
+
+  .form-group input,
+  .form-group textarea,
+  .form-group select {
     width: 100%;
     padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 5px;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    font-size: 14px;
+    color: #1f2a44;
+    transition: border-color 0.3s ease;
   }
-  
-  .form-actions {
-    margin-top: 20px;
+
+  .form-group input:focus,
+  .form-group textarea:focus,
+  .form-group select:focus {
+    border-color: #ff4d4f;
+    outline: none;
+  }
+
+  .form-group textarea {
+    resize: vertical;
+    min-height: 80px;
+  }
+
+  .modal-actions {
     display: flex;
     justify-content: flex-end;
-    gap: 10px;
+    gap: 12px;
+    margin-top: 24px;
   }
-  
-  .cancel-button, .save-button {
-    padding: 10px 15px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
+
+  .action-button.primary {
+    background: #ff4d4f;
+    color: #ffffff;
   }
-  
-  .cancel-button {
-    background-color: #95a5a6;
-    color: white;
+
+  .action-button.primary:hover {
+    background: #e02424;
   }
-  
-  .save-button {
-    background-color: #27ae60;
-    color: white;
+
+  .action-button.secondary {
+    background: #e5e7eb;
+    color: #1f2a44;
+  }
+
+  .action-button.secondary:hover {
+    background: #d1d5db;
+  }
+
+  .action-button:disabled {
+    background: #d1d5db;
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+
+  @media (max-width: 768px) {
+    .main-content {
+      padding: 16px;
+    }
+
+    .product-manager {
+      padding: 16px;
+    }
+
+    h1,
+    h2 {
+      font-size: 24px;
+    }
+
+    th,
+    td {
+      padding: 12px;
+      font-size: 13px;
+    }
+
+    .description-cell {
+      max-width: 200px;
+    }
+
+    .spinner {
+      width: 24px;
+      height: 24px;
+      border-width: 3px;
+    }
+
+    .modal-content {
+      padding: 16px;
+      max-width: 95%;
+    }
+
+    .add-button {
+      padding: 8px 16px;
+      font-size: 14px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .product-table {
+      font-size: 12px;
+    }
+
+    th,
+    td {
+      padding: 8px;
+    }
+
+    .description-cell {
+      max-width: 150px;
+    }
+
+    .action-cell {
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .action-button {
+      padding: 6px 12px;
+      font-size: 12px;
+    }
+
+    .loading,
+    .error,
+    .empty {
+      font-size: 16px;
+      padding: 32px;
+    }
+
+    .detail-image {
+      max-width: 150px;
+    }
+
+    .add-button {
+      padding: 6px 12px;
+      font-size: 13px;
+    }
   }
 </style>

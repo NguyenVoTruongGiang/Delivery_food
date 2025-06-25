@@ -1,5 +1,7 @@
 <script>
   import { onMount } from "svelte";
+  import Review from "./Review.svelte"; // Import Review component
+
   export let onGoHome;
   export let productData;
 
@@ -10,12 +12,13 @@
   let cartItemId = "";
   let quantity = 1;
   let isFavorite = false;
+  let icon = "❤️";
 
   let add_ons = [
-    { name: "Phô mai parmesan", price: "€2.50", selected: false },
-    { name: "Nước sốt cà chua", price: "€1.50", selected: false },
-    { name: "Nước sốt cay", price: "€1.50", selected: false },
-    { name: "Nước sốt kem", price: "€2.50", selected: false },
+    { name: "Phô mai parmesan", price: "15000", selected: false },
+    { name: "Nước sốt cà chua", price: "15000", selected: false },
+    { name: "Nước sốt cay", price: "15000", selected: false },
+    { name: "Nước sốt kem", price: "25000", selected: false },
   ];
 
   async function fetchProduct(product_id) {
@@ -42,25 +45,55 @@
     }
   }
 
-  async function fetchFavorite (product_id) {
+  async function handleFavorite(product_id, user_id) {
     const token = localStorage.getItem("token");
+    isFavorite = true;
+    console.log("checking favorite", isFavorite);
     try {
       console.log(`Fetching favorite status for product ID: ${product_id}`);
-      const response = await fetch(`${baseUrl}/favorites/${product_id}`, {
-        method: "GET",
+      console.log("User ID from localStorage:", user_id);
+      const response = await fetch(`${baseUrl}/favorite/add`, {
+        method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
+        body: JSON.stringify({ product_id, user_id }),
       });
       if (!response.ok) {
-        throw new Error(`Failed to fetch favorite status: ${response.statusText}`);
+        throw new Error(
+          `Failed to fetch favorite status: ${response.statusText}`
+        );
       }
       const data = await response.json();
       isFavorite = data.isFavorite;
       console.log("Fetched favorite status:", isFavorite);
     } catch (err) {
       console.error("Error fetching favorite status:", err);
+    }
+  }
+
+  async function handleDeleteFavorite(product_id, user_id) {
+    const token = localStorage.getItem("token");
+    isFavorite = false;
+    console.log("checking favorite", isFavorite);
+    try {
+      console.log(`Deleting favorite for product ID: ${product_id}`);
+      console.log("User ID from localStorage:", user_id);
+      const response = await fetch(`${baseUrl}/favorite/remove/${product_id}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ product_id, user_id }),
+      });
+      if (!response.ok) {
+        throw new Error(`Failed to delete favorite: ${response.statusText}`);
+      }
+      console.log("Deleted favorite successfully");
+    } catch (err) {
+      console.error("Error deleting favorite:", err);
     }
   }
 
@@ -76,7 +109,7 @@
         price: productData.price,
         category: productData.category,
         available: productData.available,
-        originalPrice: productData.originalPrice
+        originalPrice: productData.originalPrice,
       };
       isLoading = false;
       console.log("Initialized product:", product);
@@ -84,9 +117,16 @@
       if (productData.cartItemId) {
         cartItemId = productData.cartItemId;
         quantity = productData.quantity || 1;
-        console.log("From cart. cartItemId:", cartItemId, "quantity:", quantity);
+        console.log(
+          "From cart. cartItemId:",
+          cartItemId,
+          "quantity:",
+          quantity
+        );
         if (productData.add_ons) {
-          const selectedAddOns = productData.add_ons.split(", ").filter(Boolean);
+          const selectedAddOns = productData.add_ons
+            .split(", ")
+            .filter(Boolean);
           add_ons = add_ons.map((addon) => ({
             ...addon,
             selected: selectedAddOns.includes(addon.name),
@@ -107,7 +147,12 @@
         console.error("Invalid product ID from URL:", window.location.pathname);
         error = "Invalid product ID";
         isLoading = false;
-        console.log("Invalid product ID. error:", error, "isLoading:", isLoading);
+        console.log(
+          "Invalid product ID. error:",
+          error,
+          "isLoading:",
+          isLoading
+        );
       } else {
         fetchProduct(productId);
       }
@@ -115,7 +160,13 @@
   });
 
   function toggleFavorite() {
-    isFavorite = !isFavorite;
+    if (isFavorite) {
+      handleDeleteFavorite(product.id, Number(localStorage.getItem("user_id")));
+      isFavorite = false;
+    } else {
+      handleFavorite(product.id, Number(localStorage.getItem("user_id")));
+      isFavorite = true;
+    }
     console.log("Toggled favorite. isFavorite:", isFavorite);
   }
 
@@ -149,7 +200,7 @@
       product_id: product.id,
       quantity,
       add_ons: selectedAddOns,
-      user_id
+      user_id,
     });
     try {
       const response = await fetch(`${baseUrl}/cart/add/${user_id}`, {
@@ -183,7 +234,7 @@
       .join(", ");
     console.log("Updating cart. cartItemId:", cartItemId, "Payload:", {
       quantity,
-      add_ons: selectedAddOns
+      add_ons: selectedAddOns,
     });
     try {
       const response = await fetch(`${baseUrl}/cart/updateItem/${cartItemId}`, {
@@ -221,7 +272,7 @@
   <header>
     <button class="back-btn" on:click={() => onGoHome()}>⬅️</button>
     <button class="favorite-btn" on:click={toggleFavorite}>
-      <span class={isFavorite ? "favorite-icon active" : "favorite-icon"}>❤️</span>
+      <span class={isFavorite ? "favorite-icon active" : "favorite-icon"}>{icon}</span>
     </button>
   </header>
 
@@ -244,9 +295,11 @@
       <p>Error: {error}</p>
     {:else if product}
       <h1>{product.name}</h1>
-      <p class="description">{product.description || "No description available"}</p>
+      <p class="description">
+        {product.description || "No description available"}
+      </p>
       <div class="price">
-        <span class="current-price">{product.price || "N/A"}</span>
+        <span class="current-price">{product.price * 10000 || "N/A"}</span>
         {#if product.originalPrice}
           <span class="original-price">{product.originalPrice}</span>
         {/if}
@@ -283,6 +336,13 @@
       {cartItemId ? "Update" : "Add to Cart"}
     </button>
   </div>
+
+  <!-- Review Section -->
+  {#if product}
+    <section class="reviews-section">
+      <Review productId={product.id} />
+    </section>
+  {/if}
 </div>
 
 <style>
@@ -294,7 +354,6 @@
   }
 
   .product-detail-page {
-    /* Gradient pastel xu hướng 2025 */
     background: linear-gradient(135deg, #fefce8 0%, #d1fae5 100%);
     min-height: 100vh;
     padding: 30px;
@@ -303,7 +362,6 @@
   }
 
   .product-detail-page::before {
-    /* Hiệu ứng grain nhẹ */
     content: "";
     position: absolute;
     top: 0;
@@ -335,7 +393,10 @@
     justify-content: center;
     font-size: 18px;
     cursor: pointer;
-    transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out, border-color 0.3s ease-in-out;
+    transition:
+      transform 0.3s ease-in-out,
+      box-shadow 0.3s ease-in-out,
+      border-color 0.3s ease-in-out;
     backdrop-filter: blur(6px);
   }
 
@@ -346,16 +407,13 @@
     border-color: #ff4d4f;
   }
 
-  
   .favorite-icon {
-    /* Mặc định trắng */
-    filter: brightness(0) invert(1); /* Biến emoji thành trắng */
+    filter: brightness(0) invert(1); /* White by default */
     transition: filter 0.3s ease-in-out;
   }
 
   .favorite-icon.active {
-    /* Đỏ khi yêu thích */
-    filter: none; /* Giữ màu đỏ gốc của emoji */
+    filter: none; /* Red when active (natural color of ❤️) */
   }
 
   .product-image {
@@ -552,7 +610,9 @@
     cursor: pointer;
     position: relative;
     overflow: hidden;
-    transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+    transition:
+      transform 0.3s ease-in-out,
+      box-shadow 0.3s ease-in-out;
   }
 
   .add::before {
@@ -565,7 +625,9 @@
     background: rgba(255, 255, 255, 0.2);
     border-radius: 50%;
     transform: translate(-50%, -50%);
-    transition: width 0.5s ease-in-out, height 0.5s ease-in-out;
+    transition:
+      width 0.5s ease-in-out,
+      height 0.5s ease-in-out;
   }
 
   .add:hover::before {
@@ -578,14 +640,31 @@
     box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
   }
 
-  /* Keyframes */
-  @keyframes pulse {
-    0% { transform: scale(1); opacity: 1; }
-    50% { transform: scale(1.08); opacity: 0.85; }
-    100% { transform: scale(1); opacity: 1; }
+  /* Reviews Section */
+  .reviews-section {
+    margin-bottom: 80px; /* Extra space to avoid overlap with fixed order-section */
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 20px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    backdrop-filter: blur(8px);
   }
 
-  /* Responsive */
+  @keyframes pulse {
+    0% {
+      transform: scale(1);
+      opacity: 1;
+    }
+    50% {
+      transform: scale(1.08);
+      opacity: 0.85;
+    }
+    100% {
+      transform: scale(1);
+      opacity: 1;
+    }
+  }
+
   @media (max-width: 640px) {
     .product-detail-page {
       padding: 15px;
@@ -685,6 +764,11 @@
       font-size: 14px;
       padding: 10px 20px;
     }
+
+    .reviews-section {
+      padding: 15px;
+      margin-bottom: 70px;
+    }
   }
 
   @media (min-width: 641px) and (max-width: 1024px) {
@@ -714,6 +798,10 @@
       margin-top: 20px;
       padding: 15px;
     }
+
+    .reviews-section {
+      margin-bottom: 20px;
+    }
   }
 
   @media (min-width: 1025px) {
@@ -722,6 +810,11 @@
       max-width: 1200px;
       margin: 30px auto 0;
       padding: 20px;
+    }
+
+    .reviews-section {
+      max-width: 1200px;
+      margin: 30px auto;
     }
   }
 </style>

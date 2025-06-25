@@ -4,8 +4,8 @@
     const GOOGLE_MAPS_API_KEY = 'AIzaSyCFu6B4T56aF8pnC2tD1RIWFzzN2Bdj0ms';
 
     // Tọa độ điểm xuất phát và điểm đến
-    const origin = { lat: 10.7800, lng: 106.7009 }; // Ví dụ: TP. Hồ Chí Minh
-    const destination = { lat: 10.7800, lng: 106.7100 }; // Ví dụ: một điểm khác
+    const origin = { lat: 10.7800, lng: 106.7009 }; 
+    const destination = { lat: 10.7800, lng: 106.7100 }; 
 
     onMount(() => {
         // Tải Google Maps JavaScript API

@@ -84,7 +84,6 @@
         </div>
       </div>
       
-      <DeliveryMap />
     </div>
   </div>
 </div>
